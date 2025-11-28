@@ -42,7 +42,7 @@ class JoinClanPage extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => ClanListPage()),
+                    MaterialPageRoute(builder: (_) => ClanListPage(user: user,)),
                   );
                 },
                 style: ElevatedButton.styleFrom(

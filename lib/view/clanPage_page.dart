@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:integrador/model/appUser_model.dart';
 import 'package:integrador/services/clan_service.dart';
 
-class ClanHome extends StatelessWidget {
+class ClanPage extends StatelessWidget {
   final AppUser user;
 
-  const ClanHome({super.key, required this.user});
+  const ClanPage({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {

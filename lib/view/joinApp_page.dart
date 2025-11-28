@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:integrador/model/appUser_model.dart';
 import 'package:integrador/services/appUser_service.dart';
-import 'package:integrador/view/clanHome_page.dart';
+import 'package:integrador/view/clanPage_page.dart';
 import 'package:integrador/view/createClan_page.dart';
 import 'package:integrador/view/home_page.dart';
 import 'package:integrador/view/joinClan_page.dart';
@@ -57,7 +57,7 @@ class JoinAppPage extends StatelessWidget {
           );
         }
 
-        return HomePage(user: user);
+        return HomePage(user: user,);
       },
     );
   }

@@ -19,6 +19,26 @@ class AppUser {
     required this.createdAt,
   });
 
+  AppUser copyWith({
+    String? id,
+    String? clanId,
+    String? name,
+    String? email,
+    int? points,
+    int? level,
+    DateTime? createdAt,
+  }) {
+    return AppUser(
+      id: id ?? this.id,
+      clanId: clanId ?? this.clanId,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      points: points ?? this.points,
+      level: level ?? this.level,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+  
   factory AppUser.fromFirestore(
     Map<String, dynamic> json,
     String documentId,

@@ -44,4 +44,19 @@ class ClanService {
     final docRef = await _db.collection('clans').add(clan.toFirestore());
     return docRef.id;
   }
+
+  Future<void> joinClan(String clanId, String userId, String userName) async {
+    final db = FirebaseFirestore.instance;
+
+    await db
+        .collection("clans")
+        .doc(clanId)
+        .collection("members")
+        .doc(userId)
+        .set({
+      "name": userName,
+      "points": 0,
+    });
+  }
+
 }
