@@ -28,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             children: <Widget>[
               SizedBox(height: 40),
-              
+
               // Logo/Ícone
               Container(
                 height: 140,
@@ -36,10 +36,7 @@ class _LoginPageState extends State<LoginPage> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.orange.shade600,
-                      Colors.orange.shade800,
-                    ],
+                    colors: [Colors.orange.shade600, Colors.orange.shade800],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -58,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               SizedBox(height: 40),
-              
+
               // Título
               Text(
                 'Bem-vindo de Volta',
@@ -80,16 +77,13 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               SizedBox(height: 50),
-              
+
               // Campos de entrada
               Container(
                 decoration: BoxDecoration(
                   color: Color(0xFF111111),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Colors.grey[800]!,
-                    width: 1,
-                  ),
+                  border: Border.all(color: Colors.grey[800]!, width: 1),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.3),
@@ -116,14 +110,12 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               SizedBox(height: 16),
-              
+
               // Esqueci senha
               Align(
                 alignment: Alignment.centerRight,
                 child: GestureDetector(
-                  onTap: () {
-                    // Adicionar funcionalidade de recuperação de senha
-                  },
+                  onTap: showEmailResetPopup,
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
@@ -142,17 +134,14 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               SizedBox(height: 30),
-              
+
               // Botão de login
               Container(
                 width: double.infinity,
                 height: 56,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.orange.shade600,
-                      Colors.orange.shade800,
-                    ],
+                    colors: [Colors.orange.shade600, Colors.orange.shade800],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),
@@ -184,15 +173,12 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               SizedBox(height: 30),
-              
+
               // Divisor
               Row(
                 children: [
                   Expanded(
-                    child: Divider(
-                      color: Colors.grey[800],
-                      thickness: 1,
-                    ),
+                    child: Divider(color: Colors.grey[800], thickness: 1),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -206,25 +192,19 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   Expanded(
-                    child: Divider(
-                      color: Colors.grey[800],
-                      thickness: 1,
-                    ),
+                    child: Divider(color: Colors.grey[800], thickness: 1),
                   ),
                 ],
               ),
               SizedBox(height: 30),
-              
+
               // Registrar
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     'Não tem uma conta?',
-                    style: TextStyle(
-                      color: Colors.grey[400],
-                      fontSize: 15,
-                    ),
+                    style: TextStyle(color: Colors.grey[400], fontSize: 15),
                   ),
                   SizedBox(width: 8),
                   GestureDetector(
@@ -235,7 +215,10 @@ class _LoginPageState extends State<LoginPage> {
                       );
                     },
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.orange.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -263,9 +246,142 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  void showEmailResetPopup() {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: Color(0xFF111111),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          "Recuperar Senha",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Digite o email onde deseja receber o link:",
+              style: TextStyle(color: Colors.grey[400]),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              style: TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: "email@exemplo.com",
+                hintStyle: TextStyle(color: Colors.grey),
+                filled: true,
+                fillColor: Color(0xFF1A1A1A),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancelar", style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () async {
+              final email = controller.text.trim();
+
+              Navigator.pop(context); // fecha o popup
+
+              if (email.isEmpty) {
+                if (!mounted) return;
+                showDialog(
+                  context: context,
+                  builder: (_) => ShowAlert(
+                    title: "Email necessário",
+                    message: "Digite um email válido.",
+                    icon: Icons.error_outline,
+                  ),
+                );
+                return;
+              }
+
+              try {
+                await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
+                if (!mounted) return;
+                showDialog(
+                  context: context,
+                  builder: (_) => ShowAlert(
+                    title: "Email enviado!",
+                    message:
+                        "Um link de recuperação foi enviado para:\n\n$email",
+                    icon: Icons.check_circle_outline,
+                  ),
+                );
+
+              } catch (e) {
+                if (!mounted) return;
+                showDialog(
+                  context: context,
+                  builder: (_) => ShowAlert(
+                    title: "Erro",
+                    message:
+                        "Não foi possível enviar o email. Verifique se está correto.",
+                    icon: Icons.error_outline,
+                  ),
+                );
+              }
+            },
+            child: Text("Enviar", style: TextStyle(color: Colors.orange)),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  void resetPassword() async {
+    final email = emailController.text.trim();
+
+    if (email.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (context) => ShowAlert(
+          title: "Email necessário",
+          message: "Digite seu email no campo acima para recuperar a senha.",
+          icon: Icons.error_outline,
+        ),
+      );
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
+      showDialog(
+        context: context,
+        builder: (context) => ShowAlert(
+          title: "Email enviado!",
+          message: "Enviamos um link de recuperação para $email.",
+          icon: Icons.check_circle_outline,
+        ),
+      );
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (context) => ShowAlert(
+          title: "Erro",
+          message:
+              "Não foi possível enviar o email. Verifique se o email está correto.",
+          icon: Icons.error_outline,
+        ),
+      );
+    }
+  }
+
   void signUserIn() async {
     final auth = AuthService();
-    
+
     // Mostrar loading elegante
     showDialog(
       context: context,
@@ -278,9 +394,7 @@ class _LoginPageState extends State<LoginPage> {
           decoration: BoxDecoration(
             color: Color(0xFF111111),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.grey[800]!,
-            ),
+            border: Border.all(color: Colors.grey[800]!),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -307,7 +421,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
       ),
     );
-    
+
     try {
       await auth.signIn(
         email: emailController.text,
@@ -321,7 +435,7 @@ class _LoginPageState extends State<LoginPage> {
       );
     } on FirebaseAuthException catch (e) {
       Navigator.pop(context);
-      switch (e.code){
+      switch (e.code) {
         case 'invalid-credential':
         case 'wrong-password':
         case 'user-not-found':
