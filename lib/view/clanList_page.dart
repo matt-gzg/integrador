@@ -46,6 +46,7 @@ class ClanListPage extends StatelessWidget {
                 onTap: () async {
                   try {
                     // 1 — adiciona como membro
+                    print("USER ID = ${user.id}");
                     await ClanService().joinClan(
                       clan.id,
                       user.id!,
@@ -60,7 +61,7 @@ class ClanListPage extends StatelessWidget {
                     if (context.mounted) {
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (_) => HomePage(user: user)),
+                        MaterialPageRoute(builder: (_) => HomePage(user: updatedUser)),
                         (route) => false,
                       );
                     }

@@ -23,8 +23,8 @@ class Activity {
       userId: json['userId'],
       userName: json['userName'],
       activity: json['activity'],
-      points: json['points'],
-      createdAt: (json['createdAt'] as Timestamp).toDate(),
+      points: (json['points'] as num).toInt(),
+      createdAt: (json['timestamp'] as Timestamp).toDate(),
     );
   }
 }
