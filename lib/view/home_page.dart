@@ -24,7 +24,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     final List<Widget> screens = [
       ClanPage(user: widget.user),
       ExerciseLogPage(user: widget.user),
@@ -32,29 +31,140 @@ class _HomePageState extends State<HomePage> {
     ];
 
     return Scaffold(
+      backgroundColor: Color(0xFF0A0A0A),
       body: screens[_selectedIndex],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Color(0xFF111111),
+          border: Border(
+            top: BorderSide(
+              color: Colors.grey[800]!,
+              width: 1,
+            ),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 15,
+              offset: Offset(0, -2),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          backgroundColor: Color(0xFF111111),
+          selectedItemColor: Colors.orange,
+          unselectedItemColor: Colors.grey[500],
+          showUnselectedLabels: true,
+          selectedLabelStyle: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
+            letterSpacing: 0.5,
+          ),
+          unselectedLabelStyle: TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 11,
+          ),
+          type: BottomNavigationBarType.fixed,
+          elevation: 0,
 
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: Colors.deepPurple,
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shield),
-            label: "Clã",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.fitness_center),
-            label: "Exercícios",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "Perfil",
-          ),
-        ],
+          items: [
+            BottomNavigationBarItem(
+              icon: Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _selectedIndex == 0 
+                      ? Colors.orange.withOpacity(0.2)
+                      : Colors.transparent,
+                ),
+                child: Icon(
+                  Icons.people_alt_rounded,
+                  size: _selectedIndex == 0 ? 26 : 22,
+                ),
+              ),
+              activeIcon: Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.orange.withOpacity(0.2),
+                  border: Border.all(
+                    color: Colors.orange.withOpacity(0.5),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  Icons.people_alt_rounded,
+                  size: 26,
+                ),
+              ),
+              label: "Clã",
+            ),
+            BottomNavigationBarItem(
+              icon: Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _selectedIndex == 1 
+                      ? Colors.orange.withOpacity(0.2)
+                      : Colors.transparent,
+                ),
+                child: Icon(
+                  Icons.fitness_center_rounded,
+                  size: _selectedIndex == 1 ? 26 : 22,
+                ),
+              ),
+              activeIcon: Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.orange.withOpacity(0.2),
+                  border: Border.all(
+                    color: Colors.orange.withOpacity(0.5),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  Icons.fitness_center_rounded,
+                  size: 26,
+                ),
+              ),
+              label: "Exercícios",
+            ),
+            BottomNavigationBarItem(
+              icon: Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _selectedIndex == 2 
+                      ? Colors.orange.withOpacity(0.2)
+                      : Colors.transparent,
+                ),
+                child: Icon(
+                  Icons.person_rounded,
+                  size: _selectedIndex == 2 ? 26 : 22,
+                ),
+              ),
+              activeIcon: Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.orange.withOpacity(0.2),
+                  border: Border.all(
+                    color: Colors.orange.withOpacity(0.5),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  Icons.person_rounded,
+                  size: 26,
+                ),
+              ),
+              label: "Perfil",
+            ),
+          ],
+        ),
       ),
     );
   }
