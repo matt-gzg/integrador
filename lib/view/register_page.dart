@@ -33,11 +33,46 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void register() async {
+    // Mostrar loading elegante
     showDialog(
       context: context,
-      builder: (context) {
-        return Center(child: CircularProgressIndicator(color: Colors.amber));
-      },
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+          padding: EdgeInsets.all(30),
+          decoration: BoxDecoration(
+            color: Color(0xFF111111),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.grey[800]!,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Criando sua conta...',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
 
     try {
@@ -72,8 +107,8 @@ class _RegisterPageState extends State<RegisterPage> {
           context: context,
           builder: (context) {
             return ShowAlert(
-              title: "Password error",
-              message: "Passwords don't match.",
+              title: "Erro na Senha",
+              message: "As senhas não coincidem.",
               icon: Icons.error_outline,
             );
           },
@@ -87,8 +122,8 @@ class _RegisterPageState extends State<RegisterPage> {
             context: context,
             builder: (context) {
               return ShowAlert(
-                title: "Email error",
-                message: "There is already an user with this email!",
+                title: "Erro no Email",
+                message: "Já existe um usuário com este email!",
                 icon: Icons.error_outline,
               );
             },
@@ -99,8 +134,8 @@ class _RegisterPageState extends State<RegisterPage> {
             context: context,
             builder: (context) {
               return ShowAlert(
-                title: "Email error",
-                message: "The email format is invalid.",
+                title: "Erro no Email",
+                message: "O formato do email é inválido.",
                 icon: Icons.error_outline,
               );
             },
@@ -111,8 +146,8 @@ class _RegisterPageState extends State<RegisterPage> {
             context: context,
             builder: (context) {
               return ShowAlert(
-                title: "Password error",
-                message: "The password must be at least 6 characters long.",
+                title: "Erro na Senha",
+                message: "A senha deve ter pelo menos 6 caracteres.",
                 icon: Icons.error_outline,
               );
             },
@@ -123,8 +158,8 @@ class _RegisterPageState extends State<RegisterPage> {
             context: context,
             builder: (context) {
               return ShowAlert(
-                title: "Error",
-                message: e.message ?? "A unexpected error happened",
+                title: "Erro",
+                message: e.message ?? "Ocorreu um erro inesperado",
                 icon: Icons.error_outline,
               );
             },
@@ -136,86 +171,200 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF121212),
+      backgroundColor: Color(0xFF0A0A0A),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 40),
+          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(height: 20),
+              SizedBox(height: 30),
+              
+              // Logo/Ícone
               Container(
-                height: 110,
-                width: 110,
+                height: 140,
+                width: 140,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [Colors.amber[700]!, Colors.amber[300]!],
+                    colors: [
+                      Colors.orange.shade600,
+                      Colors.orange.shade800,
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.amber.withOpacity(0.4),
-                      blurRadius: 25,
-                      offset: Offset(0, 8),
+                      color: Colors.orange.withOpacity(0.4),
+                      blurRadius: 30,
+                      offset: Offset(0, 10),
                     ),
                   ],
                 ),
-                child: Icon(Icons.person_add, size: 55, color: Colors.black),
+                child: Icon(
+                  Icons.person_add_alt_1_rounded,
+                  size: 70,
+                  color: Colors.white,
+                ),
               ),
-              SizedBox(height: 30),
+              SizedBox(height: 40),
+              
+              // Título
               Text(
-                "Create your Account",
+                'Criar Conta',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 30,
-                  fontFamily: 'CinzelDecorative',
+                  fontSize: 32,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 1.1,
                 ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 8),
               Text(
-                "Join the realm and start building your deck!",
-                style: TextStyle(color: Colors.white54, fontSize: 15),
+                'Junte-se ao clã e comece sua jornada',
+                style: TextStyle(
+                  color: Colors.grey[400],
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 35),
-              TextFieldAuthComponent(
-                controller: nameController,
-                hintText: "Name",
-                obscureText: false,
+              SizedBox(height: 40),
+              
+              // Campos de entrada
+              Container(
+                decoration: BoxDecoration(
+                  color: Color(0xFF111111),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Colors.grey[800]!,
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
+                ),
+                padding: EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    TextFieldAuthComponent(
+                      controller: nameController,
+                      hintText: "Nome",
+                      obscureText: false,
+                    ),
+                    SizedBox(height: 20),
+                    TextFieldAuthComponent(
+                      controller: emailController,
+                      hintText: "Email",
+                      obscureText: false,
+                    ),
+                    SizedBox(height: 20),
+                    TextFieldAuthComponent(
+                      controller: passwordController,
+                      hintText: "Senha",
+                      obscureText: true,
+                    ),
+                    SizedBox(height: 20),
+                    TextFieldAuthComponent(
+                      controller: confirmPasswordController,
+                      hintText: "Confirmar Senha",
+                      obscureText: true,
+                    ),
+                  ],
+                ),
               ),
-              SizedBox(height: 18),
-              TextFieldAuthComponent(
-                controller: emailController,
-                hintText: "Email",
-                obscureText: false,
+              SizedBox(height: 30),
+              
+              // Botão de registro
+              Container(
+                width: double.infinity,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.orange.shade600,
+                      Colors.orange.shade800,
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: TextButton(
+                  onPressed: register,
+                  style: TextButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: Text(
+                    'CRIAR CONTA',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
               ),
-              SizedBox(height: 18),
-              TextFieldAuthComponent(
-                controller: passwordController,
-                hintText: "Password",
-                obscureText: true,
+              SizedBox(height: 30),
+              
+              // Divisor
+              Row(
+                children: [
+                  Expanded(
+                    child: Divider(
+                      color: Colors.grey[800],
+                      thickness: 1,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'OU',
+                      style: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Divider(
+                      color: Colors.grey[800],
+                      thickness: 1,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: 18),
-              TextFieldAuthComponent(
-                controller: confirmPasswordController,
-                hintText: "Confirm your password",
-                obscureText: true,
-              ),
-              SizedBox(height: 25),
-              ButtonAuthComponent(onTap: register, text: "Register"),
-              SizedBox(height: 25),
+              SizedBox(height: 30),
+              
+              // Link para login
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Already have an account?",
-                    style: TextStyle(color: Colors.white70),
+                    'Já tem uma conta?',
+                    style: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 15,
+                    ),
                   ),
-                  SizedBox(width: 6),
+                  SizedBox(width: 8),
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
@@ -223,16 +372,60 @@ class _RegisterPageState extends State<RegisterPage> {
                         MaterialPageRoute(builder: (context) => LoginPage()),
                       );
                     },
-                    child: Text(
-                      "Log in",
-                      style: TextStyle(
-                        color: Colors.amber[700],
-                        fontWeight: FontWeight.bold,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.orange.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Text(
+                        'Fazer Login',
+                        style: TextStyle(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
+              SizedBox(height: 40),
+              
+              // Informações adicionais
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.grey[800]!,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline_rounded,
+                      color: Colors.orange,
+                      size: 20,
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Ao criar uma conta, você concorda com nossos termos de serviço.',
+                        style: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20),
             ],
           ),
         ),
