@@ -33,28 +33,34 @@ class _CreateClanPageState extends State<CreateClanPage> {
     try {
       final clanName = _clanNameController.text.trim();
 
-      // Cria documento novo na coleção "clans" com nome e pontos 0
-      final clanId = await ClanService().createClan(
-        Clan(id: '', name: clanName, points: 0),
+      // Criar o objeto Clan (id vazio pq o firestore gera)
+      final clanModel = Clan(
+        id: '',
+        name: clanName,
+        points: 0,
+        leaderId: widget.user.id,
       );
 
-      // Atualiza usuário para vincular ao clã criado
-      final updatedUser = widget.user;
-      updatedUser.clanId = clanId;
+      // 🔥 Cria o clã com líder automaticamente registrado como membro
+      final clanId = await ClanService().createClan(
+        clan: clanModel,
+        leaderId: widget.user.id!,
+        leaderName: widget.user.name,
+      );
 
+      // Atualiza o usuário com o novo clanId
+      final updatedUser = widget.user.copyWith(clanId: clanId);
       await AppUserService().updateUser(updatedUser);
 
-      // Voltar para home (que agora vai detectar o clanId e mostrar ClanHome)
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => HomePage(user: updatedUser)),
-          (route) => false,
-        );
-      }
+      if (!mounted) return;
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => HomePage(user: updatedUser)),
+        (route) => false,
+      );
 
     } catch (e) {
-      // mostrar erro simples
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao criar clã: $e')),
       );

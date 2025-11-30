@@ -1,62 +1,140 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:integrador/model/activity_model.dart';
-import 'package:integrador/model/clanMember_model.dart';
-import 'package:integrador/model/clan_model.dart';
+  import 'package:cloud_firestore/cloud_firestore.dart';
+  import 'package:integrador/model/activity_model.dart';
+  import 'package:integrador/model/clan_model.dart';
+  import 'package:integrador/model/clanMember_model.dart';
 
-class ClanService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  class ClanService {
+    final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  Stream<Clan?> getClan(String clanId) {
-    return _db.collection("clans").doc(clanId).snapshots().map((doc) {
-      if (!doc.exists) return null;
-      return Clan.fromFirestore(doc.data()!, doc.id);
-    });
+    // -----------------------------------------------------------
+    // STREAMS
+    // -----------------------------------------------------------
+
+    Stream<Clan> getClan(String clanId) {
+      return _db
+          .collection("clans")
+          .doc(clanId)
+          .snapshots()
+          .map((d) => Clan.fromFirestore(d.id, d.data()!));
+    }
+
+    Stream<List<ClanMember>> getClanMembers(String clanId) {
+      return _db
+          .collection("clans")
+          .doc(clanId)
+          .collection("members")
+          .orderBy("points", descending: true)
+          .snapshots()
+          .map((snap) => snap.docs
+              .map((d) => ClanMember.fromFirestore(d.data(), d.id))
+              .toList());
+    }
+
+    Stream<List<Activity>> getClanActivities(String clanId) {
+      return _db
+          .collection("clans")
+          .doc(clanId)
+          .collection("activities")
+          .orderBy("timestamp", descending: true)
+          .snapshots()
+          .map((snap) =>
+              snap.docs.map((d) => Activity.fromFirestore(d.data(), d.id)).toList());
+    }
+
+    Stream<List<Clan>> getAllClans() {
+      return _db
+          .collection("clans")
+          .orderBy("points", descending: true)
+          .snapshots()
+          .map((snap) =>
+              snap.docs.map((d) => Clan.fromFirestore(d.id, d.data())).toList());
+    }
+
+    // -----------------------------------------------------------
+    // CRIAÇÃO E ENTRADA EM CLÃ
+    // -----------------------------------------------------------
+
+    /// Método para criar um novo clã + salvar líder como membro.
+    Future<String> createClan({
+      required Clan clan,
+      required String leaderId,
+      required String leaderName,
+    }) async {
+      final clanRef = _db.collection("clans").doc();
+
+      final data = {
+        "name": clan.name,
+        "points": clan.points,
+        "leaderId": leaderId,
+      };
+
+      await clanRef.set(data);
+
+      // adiciona o líder como membro inicial
+      await clanRef.collection("members").doc(leaderId).set({
+        "name": leaderName,
+        "points": 0,
+      });
+
+      return clanRef.id;
+    }
+
+    /// Adiciona membro normal ao clã
+    Future<void> joinClan(String clanId, String userId, String userName) async {
+      final memberRef =
+          _db.collection("clans").doc(clanId).collection("members").doc(userId);
+
+      final snap = await memberRef.get();
+      if (snap.exists) return;
+
+      await memberRef.set({
+        "name": userName,
+        "points": 0,
+      });
+
+      print("Usuário $userName entrou no clã $clanId");
+    }
+
+    // -----------------------------------------------------------
+    // REGISTRO DE ATIVIDADE
+    // -----------------------------------------------------------
+
+    Future<void> registerClanActivity({
+      required String clanId,
+      required String userId,
+      required String userName,
+      required String activityName,
+      required int points,
+    }) async {
+      final clanRef = _db.collection("clans").doc(clanId);
+      final memberRef = clanRef.collection("members").doc(userId);
+      final activitiesRef = clanRef.collection("activities");
+
+      await _db.runTransaction((transaction) async {
+        // 1. Registrar atividade
+        transaction.set(activitiesRef.doc(), {
+          "userId": userId,
+          "userName": userName,
+          "activity": activityName,
+          "points": points,
+          "timestamp": Timestamp.now(),
+        });
+
+        // 2. Atualizar pontos do membro
+        final memberSnap = await transaction.get(memberRef);
+        final currentMemberPoints = memberSnap.data()?["points"] ?? 0;
+
+        transaction.update(memberRef, {
+          "points": currentMemberPoints + points,
+        });
+
+        // 3. Atualizar pontos do clã
+        final clanSnap = await transaction.get(clanRef);
+        final currentClanPoints = clanSnap.data()?["points"] ?? 0;
+
+        transaction.update(clanRef, {
+          "points": currentClanPoints + points,
+        });
+      });
+    }
   }
-
-  Stream<List<Clan>> getAllClans() {
-    return _db.collection("clans").snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => Clan.fromFirestore(doc.data(), doc.id)).toList();
-    });
-  }
-
-  Stream<List<ClanMember>> getClanMembers(String clanId) {
-    return _db
-        .collection("clans")
-        .doc(clanId)
-        .collection("members")
-        .snapshots()
-        .map((snap) =>
-            snap.docs.map((d) => ClanMember.fromFirestore(d.data(), d.id)).toList());
-  }
-
-  Stream<List<Activity>> getClanActivities(String clanId) {
-    return _db
-        .collection("clans")
-        .doc(clanId)
-        .collection("activities")
-        .orderBy("createdAt", descending: true)
-        .snapshots()
-        .map((snap) =>
-            snap.docs.map((d) => Activity.fromFirestore(d.data(), d.id)).toList());
-  }
-
-  Future<String> createClan(Clan clan) async {
-    final docRef = await _db.collection('clans').add(clan.toFirestore());
-    return docRef.id;
-  }
-
-  Future<void> joinClan(String clanId, String userId, String userName) async {
-    final db = FirebaseFirestore.instance;
-
-    await db
-        .collection("clans")
-        .doc(clanId)
-        .collection("members")
-        .doc(userId)
-        .set({
-      "name": userName,
-      "points": 0,
-    });
-  }
-
-}
