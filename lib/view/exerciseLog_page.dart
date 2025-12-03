@@ -4,16 +4,116 @@ import 'package:integrador/services/exerciseLog_service.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ExerciseLogPage extends StatelessWidget {
+class ExerciseLogPage extends StatefulWidget {
   final AppUser user;
 
   const ExerciseLogPage({super.key, required this.user});
 
   @override
-  Widget build(BuildContext context) {
-    final logService = ExerciseLogService(user.clanId!);
-    final logStream = logService.getUserLogs(user.id!);
+  State<ExerciseLogPage> createState() => _ExerciseLogPageState();
+}
 
+class _ExerciseLogPageState extends State<ExerciseLogPage> {
+  DateTime? _selectedDate;
+  late ExerciseLogService logService;
+  late Stream<List<dynamic>> logStream;
+
+  @override
+  void initState() {
+    super.initState();
+    logService = ExerciseLogService(widget.user.clanId!);
+    logStream = logService.getUserLogs(widget.user.id!);
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.dark().copyWith(
+            colorScheme: ColorScheme.dark(
+              primary: Colors.orange,
+              onPrimary: Colors.white,
+              surface: Color(0xFF111111),
+              onSurface: Colors.white,
+            ),
+            dialogBackgroundColor: Color(0xFF111111),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(foregroundColor: Colors.orange),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedDate = DateTime(picked.year, picked.month, picked.day);
+      });
+    }
+  }
+
+  void _clearDateFilter() {
+    setState(() {
+      _selectedDate = null;
+    });
+  }
+
+  List<dynamic> _filterLogsByDate(List<dynamic> allLogs) {
+    if (_selectedDate == null) {
+      return allLogs;
+    }
+    
+    return allLogs.where((log) {
+      try {
+        DateTime logDate;
+        if (log.timestamp is String) {
+          logDate = DateTime.parse(log.timestamp);
+        } else if (log.timestamp is Timestamp) {
+          logDate = (log.timestamp as Timestamp).toDate();
+        } else if (log.timestamp is DateTime) {
+          logDate = log.timestamp;
+        } else {
+          return false;
+        }
+
+        return logDate.year == _selectedDate!.year &&
+            logDate.month == _selectedDate!.month &&
+            logDate.day == _selectedDate!.day;
+      } catch (e) {
+        return false;
+      }
+    }).toList();
+  }
+
+  String _formatarDataBrasileira(dynamic timestamp) {
+    if (timestamp == null) return "Data não disponível";
+
+    try {
+      DateTime dateTime;
+
+      if (timestamp is String) {
+        dateTime = DateTime.parse(timestamp);
+      } else if (timestamp is Timestamp) {
+        dateTime = timestamp.toDate();
+      } else if (timestamp is DateTime) {
+        dateTime = timestamp;
+      } else {
+        return "Formato inválido";
+      }
+
+      return DateFormat("dd/MM/yyyy 'às' HH:mm").format(dateTime);
+    } catch (e) {
+      return "Erro na data";
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFF0A0A0A),
       appBar: AppBar(
@@ -55,56 +155,226 @@ class ExerciseLogPage extends StatelessWidget {
         ),
       ),
 
-      body: StreamBuilder(
-        stream: logStream,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return _buildLogSkeleton();
-          }
+      body: Column(
+        children: [
+          _buildDateFilter(context),
 
-          final logs = snapshot.data!;
-          if (logs.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[800]!.withOpacity(0.3),
-                      shape: BoxShape.circle,
+          Expanded(
+            child: StreamBuilder(
+              stream: logStream,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return _buildLogSkeleton();
+                }
+
+                final allLogs = snapshot.data!;
+                final filteredLogs = _filterLogsByDate(allLogs);
+
+                if (filteredLogs.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[800]!.withOpacity(0.3),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.fitness_center_rounded,
+                            color: Colors.grey[600],
+                            size: 40,
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        Text(
+                          _selectedDate == null
+                              ? "Nenhuma atividade registrada"
+                              : _selectedDate!.day == DateTime.now().day &&
+                                      _selectedDate!.month == DateTime.now().month &&
+                                      _selectedDate!.year == DateTime.now().year
+                                  ? "Nenhuma atividade registrada hoje"
+                                  : "Nenhuma atividade registrada em ${DateFormat('dd/MM/yyyy').format(_selectedDate!)}",
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Clique no + para adicionar um exercício",
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
-                    child: Icon(
-                      Icons.fitness_center_rounded,
-                      color: Colors.grey[600],
-                      size: 40,
+                  );
+                }
+
+                return ListView.builder(
+                  padding: EdgeInsets.all(16),
+                  itemCount: filteredLogs.length,
+                  itemBuilder: (context, index) {
+                    final log = filteredLogs[index];
+                    return _buildLogCard(log, index, context, logService);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateFilter(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Color(0xFF111111),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[800]!, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Filtrar por data",
+                  style: TextStyle(
+                    color: Colors.grey[400],
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  _selectedDate == null
+                      ? "Mostrando todos os registros"
+                      : DateFormat("EEEE, dd 'de' MMMM 'de' yyyy").format(_selectedDate!),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Row(
+            children: [
+              if (_selectedDate != null)
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[700]!.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: IconButton(
+                    icon: Icon(Icons.close, color: Colors.white, size: 20),
+                    onPressed: _clearDateFilter,
+                    padding: EdgeInsets.zero,
+                    tooltip: "Limpar filtro",
+                  ),
+                ),
+              if (_selectedDate != null) SizedBox(width: 8),
+
+              if (_selectedDate != null)
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[800]!.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: IconButton(
+                    icon: Icon(Icons.chevron_left, color: Colors.white, size: 20),
+                    onPressed: () {
+                      setState(() {
+                        _selectedDate = _selectedDate!.subtract(Duration(days: 1));
+                      });
+                    },
+                    padding: EdgeInsets.zero,
+                    tooltip: "Dia anterior",
+                  ),
+                ),
+              if (_selectedDate != null) SizedBox(width: 8),
+
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.orange.shade600, Colors.orange.shade800],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.3),
+                      blurRadius: 6,
+                      offset: Offset(0, 3),
                     ),
+                  ],
+                ),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.calendar_today,
+                    color: Colors.white,
+                    size: 20,
                   ),
-                  SizedBox(height: 20),
-                  Text(
-                    "Nenhuma atividade registrada",
-                    style: TextStyle(color: Colors.grey[400], fontSize: 16),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "Clique no + para adicionar seu primeiro exercício",
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                  ),
-                ],
+                  onPressed: () => _selectDate(context),
+                  padding: EdgeInsets.zero,
+                  tooltip: _selectedDate == null ? "Selecionar data" : "Alterar data",
+                ),
               ),
-            );
-          }
 
-          return ListView.builder(
-            padding: EdgeInsets.all(16),
-            itemCount: logs.length,
-            itemBuilder: (context, index) {
-              final log = logs[index];
-              return _buildLogCard(log, index, context, logService);
-            },
-          );
-        },
+              if (_selectedDate != null) SizedBox(width: 8),
+              if (_selectedDate != null)
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[800]!.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.chevron_right,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    onPressed: _selectedDate!.isAtSameMomentAs(DateTime.now()) ||
+                            _selectedDate!.isAfter(DateTime.now())
+                        ? null
+                        : () {
+                            setState(() {
+                              _selectedDate = _selectedDate!.add(Duration(days: 1));
+                            });
+                          },
+                    padding: EdgeInsets.zero,
+                    tooltip: "Próximo dia",
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -132,28 +402,6 @@ class ExerciseLogPage extends StatelessWidget {
         intensityColor = Colors.green.shade400;
         intensityLabel = "BAIXA";
         break;
-    }
-
-    String formattedDate = "Data não disponível";
-    try {
-      if (log.timestamp != null) {
-        // Se o timestamp for uma string, converte para DateTime
-        DateTime dateTime;
-        if (log.timestamp is String) {
-          dateTime = DateTime.parse(log.timestamp);
-        } else if (log.timestamp is Timestamp) {
-          dateTime = (log.timestamp as Timestamp).toDate();
-        } else if (log.timestamp is DateTime) {
-          dateTime = log.timestamp;
-        } else {
-          dateTime = DateTime.now();
-        }
-
-        // Formata para o padrão brasileiro: dd/MM/yyyy HH:mm
-        formattedDate = DateFormat("dd/MM/yyyy 'às' HH:mm").format(dateTime);
-      }
-    } catch (e) {
-      print("Erro ao formatar data: $e");
     }
 
     return Container(
@@ -256,7 +504,7 @@ class ExerciseLogPage extends StatelessWidget {
             ),
             SizedBox(height: 6),
             Text(
-              "Registrado em ${formattedDate}",
+              "Registrado em ${_formatarDataBrasileira(log.timestamp)}",
               style: TextStyle(color: Colors.grey[400], fontSize: 12),
             ),
           ],
@@ -290,7 +538,6 @@ class ExerciseLogPage extends StatelessWidget {
     );
   }
 
-  // Método para mostrar o popup de opções
   void _showExerciseOptions(
     BuildContext context,
     ExerciseLogService logService,
@@ -310,7 +557,6 @@ class ExerciseLogPage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header do popup
               Container(
                 width: 50,
                 height: 50,
@@ -345,7 +591,6 @@ class ExerciseLogPage extends StatelessWidget {
               ),
               SizedBox(height: 20),
 
-              // Botões de opções
               Container(
                 width: double.infinity,
                 height: 44,
@@ -522,7 +767,6 @@ class ExerciseLogPage extends StatelessWidget {
     );
   }
 
-  // Modal para registrar atividade (mantido igual)
   void _openAddExerciseDialog(
     BuildContext context,
     ExerciseLogService logService,
@@ -546,7 +790,6 @@ class ExerciseLogPage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header do modal
               Container(
                 width: 60,
                 height: 60,
@@ -587,7 +830,6 @@ class ExerciseLogPage extends StatelessWidget {
               ),
               SizedBox(height: 24),
 
-              // Campos do formulário
               Container(
                 decoration: BoxDecoration(
                   color: Color(0xFF1A1A1A),
@@ -736,8 +978,8 @@ class ExerciseLogPage extends StatelessWidget {
                           if (activityController.text.isNotEmpty &&
                               durationController.text.isNotEmpty) {
                             await logService.addExerciseLog(
-                              userId: user.id!,
-                              userName: user.name,
+                              userId: widget.user.id!,
+                              userName: widget.user.name,
                               activityName: activityController.text,
                               intensity: selectedIntensity,
                               duration:
@@ -770,7 +1012,6 @@ class ExerciseLogPage extends StatelessWidget {
     );
   }
 
-  // Modal para editar atividade (mantido igual)
   void _openEditExerciseDialog(
     BuildContext context,
     ExerciseLogService logService,
@@ -797,7 +1038,6 @@ class ExerciseLogPage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header do modal
               Container(
                 width: 60,
                 height: 60,
@@ -834,7 +1074,6 @@ class ExerciseLogPage extends StatelessWidget {
               ),
               SizedBox(height: 24),
 
-              // Campos do formulário
               Container(
                 decoration: BoxDecoration(
                   color: Color(0xFF1A1A1A),
@@ -929,7 +1168,6 @@ class ExerciseLogPage extends StatelessWidget {
 
               SizedBox(height: 24),
 
-              // Botões
               Row(
                 children: [
                   Expanded(
@@ -1016,7 +1254,6 @@ class ExerciseLogPage extends StatelessWidget {
     );
   }
 
-  // Diálogo de confirmação para excluir (mantido igual)
   void _showDeleteConfirmationDialog(
     BuildContext context,
     ExerciseLogService logService,
