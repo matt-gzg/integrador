@@ -100,4 +100,18 @@ class ExerciseLogService {
               .toList(),
         );
   }
+
+  // Adicione estes métodos no seu ExerciseLogService
+  Future<void> updateExerciseLog({
+    required String logId,
+    required String activityName,
+    required String intensity,
+    required int duration,
+  }) async {
+    // Implementação para atualizar no Firebase
+  }
+
+  Future<void> deleteExerciseLog(String logId) async {
+    // Implementação para excluir do Firebase
+  }
 }
