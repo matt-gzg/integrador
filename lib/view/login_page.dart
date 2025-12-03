@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:integrador/components/buttonAuth_component.dart';
 import 'package:integrador/components/showAlert_component.dart';
 import 'package:integrador/components/textFieldAuth_component.dart';
 import 'package:integrador/services/auth_service.dart';

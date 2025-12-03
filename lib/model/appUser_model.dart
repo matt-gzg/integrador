@@ -3,11 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class AppUser {
   String? id;
   String? clanId;
-  final String name;
-  final String email;
-  final int points;
-  final int level;
-  final DateTime createdAt;
+  String name;
+  String email;
+  int points;
+  int level;
+  DateTime createdAt;
+  String? photoUrl;
 
   AppUser({
     this.id,
@@ -17,6 +18,7 @@ class AppUser {
     this.points = 0,
     this.level = 1,
     required this.createdAt,
+    this.photoUrl,
   });
 
   AppUser copyWith({
@@ -27,6 +29,7 @@ class AppUser {
     int? points,
     int? level,
     DateTime? createdAt,
+    String? photoUrl,
   }) {
     return AppUser(
       id: id ?? this.id,
@@ -36,6 +39,7 @@ class AppUser {
       points: points ?? this.points,
       level: level ?? this.level,
       createdAt: createdAt ?? this.createdAt,
+      photoUrl: photoUrl ?? this.photoUrl,
     );
   }
   
@@ -53,6 +57,7 @@ class AppUser {
       createdAt: json['createdAt'] is Timestamp
           ? (json['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
+      photoUrl: json['photoUrl'],
     );
   }
 
@@ -64,6 +69,7 @@ class AppUser {
       'points': points,
       'level': level,
       'createdAt': createdAt,
+      'photoUrl': photoUrl,
     };
   }
 }

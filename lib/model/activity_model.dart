@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Activity {
-  final String id;
-  final String userId;
-  final String userName;
-  final String activity;
-  final int points;
-  final DateTime createdAt;
+  String id;
+  String userId;
+  String userName;
+  String activity;
+  int points;
+  DateTime createdAt;
 
   Activity({
     required this.id,
