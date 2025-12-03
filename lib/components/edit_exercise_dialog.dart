@@ -15,32 +15,48 @@ class EditExerciseDialog {
     );
 
     String selectedIntensity = log.intensity.toLowerCase();
+    bool isLoading = false;
 
     showDialog(
       context: context,
-      builder: (context) => AddExerciseDialog.buildDialog(
-        context: context,
-        title: "Editar Exercício",
-        description: "Atualize os detalhes do seu treino",
-        icon: Icons.edit_rounded,
-        activityController: activityController,
-        durationController: durationController,
-        selectedIntensity: selectedIntensity,
-        onIntensityChanged: (value) => selectedIntensity = value!,
-        onCancel: () => Navigator.pop(context),
-        onConfirm: () async {
-          if (activityController.text.isNotEmpty &&
-              durationController.text.isNotEmpty) {
-            await logService.updateExerciseLog(
-              logId: log.id!,
-              activityName: activityController.text,
-              intensity: selectedIntensity,
-              duration: int.tryParse(durationController.text) ?? 0,
-            );
-            Navigator.pop(context);
-          }
-        },
-        confirmText: "Atualizar",
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AddExerciseDialog.buildDialog(
+          context: context,
+          title: "Editar Exercício",
+          description: "Atualize os detalhes do seu treino",
+          icon: Icons.edit_rounded,
+          activityController: activityController,
+          durationController: durationController,
+          selectedIntensity: selectedIntensity,
+          onIntensityChanged: (value) => selectedIntensity = value!,
+          onCancel: () => !isLoading ? Navigator.pop(context) : null,
+          onConfirm: () async {
+            if (activityController.text.isNotEmpty &&
+                durationController.text.isNotEmpty) {
+              setState(() => isLoading = true);
+              try {
+                await logService.updateExerciseLog(
+                  logId: log.id!,
+                  activityName: activityController.text,
+                  intensity: selectedIntensity,
+                  duration: int.tryParse(durationController.text) ?? 0,
+                );
+                Navigator.pop(context);
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Erro ao atualizar: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                setState(() => isLoading = false);
+              }
+            }
+          },
+          confirmText: "Atualizar",
+          isLoading: isLoading,
+        ),
       ),
     );
   }

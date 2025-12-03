@@ -1,7 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-class DateFilterWidget extends StatelessWidget {
+// Formatador de máscara para data brasileira (DD/MM/YYYY)
+class DateMaskFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    // Se o texto está vazio, retorna como está
+    if (newValue.text.isEmpty) {
+      return newValue;
+    }
+
+    // Remove caracteres não numéricos
+    String digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
+
+    // Limita a 8 dígitos (DDMMYYYY)
+    if (digitsOnly.length > 8) {
+      digitsOnly = digitsOnly.substring(0, 8);
+    }
+
+    // Aplica a máscara
+    String formatted = '';
+    for (int i = 0; i < digitsOnly.length; i++) {
+      if (i == 2 || i == 4) {
+        formatted += '/';
+      }
+      formatted += digitsOnly[i];
+    }
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
+
+class DateFilterWidget extends StatefulWidget {
   final DateTime? selectedDate;
   final Function(DateTime?) onDateSelected;
   final VoidCallback onClearFilter;
@@ -13,10 +50,69 @@ class DateFilterWidget extends StatelessWidget {
     required this.onClearFilter,
   });
 
+  @override
+  State<DateFilterWidget> createState() => _DateFilterWidgetState();
+}
+
+class _DateFilterWidgetState extends State<DateFilterWidget> {
+  late TextEditingController _dateInputController;
+
+  @override
+  void initState() {
+    super.initState();
+    _dateInputController = TextEditingController(
+      text: widget.selectedDate != null
+          ? DateFormat("dd/MM/yyyy").format(widget.selectedDate!)
+          : "",
+    );
+  }
+
+  @override
+  void didUpdateWidget(DateFilterWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedDate != oldWidget.selectedDate) {
+      _dateInputController.text = widget.selectedDate != null
+          ? DateFormat("dd/MM/yyyy").format(widget.selectedDate!)
+          : "";
+    }
+  }
+
+  @override
+  void dispose() {
+    _dateInputController.dispose();
+    super.dispose();
+  }
+
+  void _parseAndSetDate(String input) {
+    if (input.isEmpty) {
+      widget.onClearFilter();
+      return;
+    }
+
+    try {
+      // Remove caracteres não-numéricos
+      String cleanInput = input.replaceAll(RegExp(r'\D'), '');
+
+      if (cleanInput.length == 8) {
+        int day = int.parse(cleanInput.substring(0, 2));
+        int month = int.parse(cleanInput.substring(2, 4));
+        int year = int.parse(cleanInput.substring(4, 8));
+
+        // Validações básicas
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+          final parsedDate = DateTime(year, month, day);
+          widget.onDateSelected(parsedDate);
+        }
+      }
+    } catch (e) {
+      // Ignora erros de parsing
+    }
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate ?? DateTime.now(),
+      initialDate: widget.selectedDate ?? DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime.now().add(Duration(days: 365)),
       builder: (context, child) {
@@ -39,7 +135,7 @@ class DateFilterWidget extends StatelessWidget {
     );
 
     if (picked != null) {
-      onDateSelected(DateTime(picked.year, picked.month, picked.day));
+      widget.onDateSelected(DateTime(picked.year, picked.month, picked.day));
     }
   }
 
@@ -60,80 +156,113 @@ class DateFilterWidget extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Filtrar por data",
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+          Text(
+            "Filtrar por data",
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Color(0xFF1A1A1A),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[800]!, width: 1),
+                  ),
+                  child: TextField(
+                    controller: _dateInputController,
+                    style: TextStyle(color: Colors.white),
+                    inputFormatters: [DateMaskFormatter()],
+                    keyboardType: TextInputType.number,
+                    onChanged: _parseAndSetDate,
+                    decoration: InputDecoration(
+                      hintText: "DD/MM/YYYY",
+                      hintStyle: TextStyle(color: Colors.grey[600]),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      border: InputBorder.none,
+                    ),
                   ),
                 ),
-                SizedBox(height: 4),
+              ),
+              SizedBox(width: 8),
+              _buildIconButton(
+                icon: Icons.calendar_today,
+                tooltip: widget.selectedDate == null
+                    ? "Selecionar data"
+                    : "Alterar data",
+                onPressed: () => _selectDate(context),
+                isGradient: true,
+              ),
+            ],
+          ),
+          if (widget.selectedDate != null) ...[
+            SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
                 Text(
-                  selectedDate == null
-                      ? "Mostrando todos os registros"
-                      : DateFormat("EEEE, dd 'de' MMMM 'de' yyyy").format(selectedDate!),
+                  DateFormat(
+                    "EEEE, dd 'de' MMMM 'de' yyyy",
+                    "pt_BR",
+                  ).format(widget.selectedDate!),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
+                Row(
+                  children: [
+                    _buildIconButton(
+                      icon: Icons.chevron_left,
+                      tooltip: "Dia anterior",
+                      onPressed: () {
+                        widget.onDateSelected(
+                          widget.selectedDate!.subtract(Duration(days: 1)),
+                        );
+                      },
+                      color: Colors.grey[800]!.withOpacity(0.3),
+                    ),
+                    SizedBox(width: 4),
+                    _buildIconButton(
+                      icon: Icons.close,
+                      tooltip: "Limpar filtro",
+                      onPressed: widget.onClearFilter,
+                      color: Colors.grey[700]!.withOpacity(0.3),
+                    ),
+                    SizedBox(width: 4),
+                    _buildIconButton(
+                      icon: Icons.chevron_right,
+                      tooltip: "Próximo dia",
+                      onPressed:
+                          widget.selectedDate!.isAtSameMomentAs(
+                                DateTime.now(),
+                              ) ||
+                              widget.selectedDate!.isAfter(DateTime.now())
+                          ? null
+                          : () {
+                              widget.onDateSelected(
+                                widget.selectedDate!.add(Duration(days: 1)),
+                              );
+                            },
+                      color: Colors.grey[800]!.withOpacity(0.3),
+                    ),
+                  ],
+                ),
               ],
             ),
-          ),
-
-          Row(
-            children: [
-              if (selectedDate != null)
-                _buildIconButton(
-                  icon: Icons.close,
-                  tooltip: "Limpar filtro",
-                  onPressed: onClearFilter,
-                  color: Colors.grey[700]!.withOpacity(0.3),
-                ),
-              if (selectedDate != null) SizedBox(width: 8),
-
-              if (selectedDate != null)
-                _buildIconButton(
-                  icon: Icons.chevron_left,
-                  tooltip: "Dia anterior",
-                  onPressed: () {
-                    onDateSelected(selectedDate!.subtract(Duration(days: 1)));
-                  },
-                  color: Colors.grey[800]!.withOpacity(0.3),
-                ),
-              if (selectedDate != null) SizedBox(width: 8),
-
-              _buildIconButton(
-                icon: Icons.calendar_today,
-                tooltip: selectedDate == null ? "Selecionar data" : "Alterar data",
-                onPressed: () => _selectDate(context),
-                isGradient: true,
-              ),
-
-              if (selectedDate != null) SizedBox(width: 8),
-              if (selectedDate != null)
-                _buildIconButton(
-                  icon: Icons.chevron_right,
-                  tooltip: "Próximo dia",
-                  onPressed: selectedDate!.isAtSameMomentAs(DateTime.now()) ||
-                          selectedDate!.isAfter(DateTime.now())
-                      ? null
-                      : () {
-                          onDateSelected(selectedDate!.add(Duration(days: 1)));
-                        },
-                  color: Colors.grey[800]!.withOpacity(0.3),
-                ),
-            ],
-          ),
+          ],
         ],
       ),
     );

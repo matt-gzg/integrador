@@ -54,6 +54,7 @@ class AddExerciseDialog {
     required VoidCallback onCancel,
     required VoidCallback onConfirm,
     required String confirmText,
+    bool isLoading = false,
   }) {
     return Dialog(
       backgroundColor: Color(0xFF111111),
@@ -126,6 +127,7 @@ class AddExerciseDialog {
               onCancel: onCancel,
               onConfirm: onConfirm,
               confirmText: confirmText,
+              isLoading: isLoading,
             ),
           ],
         ),
@@ -213,6 +215,7 @@ class AddExerciseDialog {
     required VoidCallback onCancel,
     required VoidCallback onConfirm,
     required String confirmText,
+    bool isLoading = false,
   }) {
     return Row(
       children: [
@@ -225,7 +228,7 @@ class AddExerciseDialog {
               border: Border.all(color: Colors.grey[600]!, width: 1),
             ),
             child: TextButton(
-              onPressed: onCancel,
+              onPressed: isLoading ? null : onCancel,
               style: TextButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -234,7 +237,7 @@ class AddExerciseDialog {
               child: Text(
                 "Cancelar",
                 style: TextStyle(
-                  color: Colors.grey[400],
+                  color: isLoading ? Colors.grey[600] : Colors.grey[400],
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -260,19 +263,29 @@ class AddExerciseDialog {
               ],
             ),
             child: TextButton(
-              onPressed: onConfirm,
+              onPressed: isLoading ? null : onConfirm,
               style: TextButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: Text(
-                confirmText,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: isLoading
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      confirmText,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
           ),
         ),
