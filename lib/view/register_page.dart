@@ -4,7 +4,6 @@ import 'package:integrador/components/showAlert_component.dart';
 import 'package:integrador/components/textFieldAuth_component.dart';
 import 'package:integrador/model/appUser_model.dart';
 import 'package:integrador/services/appUser_service.dart';
-import 'package:integrador/view/login_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -44,9 +43,7 @@ class _RegisterPageState extends State<RegisterPage> {
           decoration: BoxDecoration(
             color: Color(0xFF111111),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.grey[800]!,
-            ),
+            border: Border.all(color: Colors.grey[800]!),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -94,12 +91,14 @@ class _RegisterPageState extends State<RegisterPage> {
         );
         await AppUserService().createUser(newUser);
 
-        Navigator.pop(context);
+        Navigator.pop(context); // Fecha dialog de loading
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => LoginPage()),
-        );
+        // Aguardar um pouco e depois voltar para LoginPage
+        if (!mounted) return;
+        await Future.delayed(Duration(milliseconds: 500));
+
+        if (!mounted) return;
+        Navigator.pop(context); // Volta de RegisterPage para LoginPage
       } else {
         Navigator.pop(context);
         showDialog(
@@ -171,6 +170,14 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFF0A0A0A),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: Colors.orange),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -178,7 +185,7 @@ class _RegisterPageState extends State<RegisterPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(height: 30),
-              
+
               // Logo/Ícone
               Container(
                 height: 140,
@@ -186,10 +193,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.orange.shade600,
-                      Colors.orange.shade800,
-                    ],
+                    colors: [Colors.orange.shade600, Colors.orange.shade800],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -208,7 +212,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
               SizedBox(height: 40),
-              
+
               // Título
               Text(
                 'Criar Conta',
@@ -231,16 +235,13 @@ class _RegisterPageState extends State<RegisterPage> {
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 40),
-              
+
               // Campos de entrada
               Container(
                 decoration: BoxDecoration(
                   color: Color(0xFF111111),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Colors.grey[800]!,
-                    width: 1,
-                  ),
+                  border: Border.all(color: Colors.grey[800]!, width: 1),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.3),
@@ -279,17 +280,14 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
               SizedBox(height: 30),
-              
+
               // Botão de registro
               Container(
                 width: double.infinity,
                 height: 56,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.orange.shade600,
-                      Colors.orange.shade800,
-                    ],
+                    colors: [Colors.orange.shade600, Colors.orange.shade800],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),
@@ -321,15 +319,12 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
               SizedBox(height: 30),
-              
+
               // Divisor
               Row(
                 children: [
                   Expanded(
-                    child: Divider(
-                      color: Colors.grey[800],
-                      thickness: 1,
-                    ),
+                    child: Divider(color: Colors.grey[800], thickness: 1),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -343,36 +338,31 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   Expanded(
-                    child: Divider(
-                      color: Colors.grey[800],
-                      thickness: 1,
-                    ),
+                    child: Divider(color: Colors.grey[800], thickness: 1),
                   ),
                 ],
               ),
               SizedBox(height: 30),
-              
+
               // Link para login
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     'Já tem uma conta?',
-                    style: TextStyle(
-                      color: Colors.grey[400],
-                      fontSize: 15,
-                    ),
+                    style: TextStyle(color: Colors.grey[400], fontSize: 15),
                   ),
                   SizedBox(width: 8),
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => LoginPage()),
-                      );
+                      // Apenas voltar para LoginPage (que está sendo renderizada pelo AuthPage)
+                      Navigator.pop(context);
                     },
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.orange.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -393,16 +383,14 @@ class _RegisterPageState extends State<RegisterPage> {
                 ],
               ),
               SizedBox(height: 40),
-              
+
               // Informações adicionais
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.grey[800]!,
-                  ),
+                  border: Border.all(color: Colors.grey[800]!),
                 ),
                 child: Row(
                   children: [
@@ -415,10 +403,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     Expanded(
                       child: Text(
                         'Ao criar uma conta, você concorda com nossos termos de serviço.',
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
                       ),
                     ),
                   ],

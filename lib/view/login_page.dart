@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:integrador/components/showAlert_component.dart';
 import 'package:integrador/components/textFieldAuth_component.dart';
 import 'package:integrador/services/auth_service.dart';
-import 'package:integrador/view/joinApp_page.dart';
 import 'package:integrador/view/register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -425,9 +424,26 @@ class _LoginPageState extends State<LoginPage> {
         password: passwordController.text,
       );
 
-      if (Navigator.canPop(context)) Navigator.pop(context);
+      if (!mounted) return;
+
+      // Fechar dialog de loading
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      // Limpar controllers
+      emailController.clear();
+      passwordController.clear();
+
+      // O AuthPage detectará a mudança automaticamente e redirecionará
+      // Não precisa fazer mais nada aqui!
     } on FirebaseAuthException catch (e) {
-      if (Navigator.canPop(context)) Navigator.pop(context);
+      if (!mounted) return;
+
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
       switch (e.code) {
         case 'invalid-credential':
         case 'wrong-password':
