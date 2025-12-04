@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:integrador/components/add_exercise_dialog.dart';
-import 'package:integrador/services/exerciseLog_service.dart';
+import 'package:integrador/services/exercise_service.dart';
 
 class EditExerciseDialog {
   static void show({
     required BuildContext context,
-    required ExerciseLogService logService,
+    required ExerciseService logService,
     required dynamic log,
   }) {
     final activityController = TextEditingController(text: log.activityName);

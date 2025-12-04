@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:integrador/model/appUser_model.dart';
-import 'package:integrador/services/exerciseLog_service.dart';
+import 'package:integrador/services/exercise_service.dart';
 
 class AddExerciseDialog {
   static void show({
     required BuildContext context,
-    required ExerciseLogService logService,
+    required ExerciseService logService,
     required AppUser user,
   }) {
     final activityController = TextEditingController();

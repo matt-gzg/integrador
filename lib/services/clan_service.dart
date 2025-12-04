@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:integrador/model/activity_model.dart';
 import 'package:integrador/model/clan_model.dart';
 import 'package:integrador/model/clanMember_model.dart';
+import 'package:integrador/model/exercise_model.dart';
 
 class ClanService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -30,7 +30,7 @@ class ClanService {
             .toList());
   }
 
-  Stream<List<Activity>> getClanActivities(String clanId) {
+  Stream<List<Exercise>> getClanActivities(String clanId) {
     return _db
         .collection("clans")
         .doc(clanId)
@@ -38,7 +38,20 @@ class ClanService {
         .orderBy("timestamp", descending: true)
         .snapshots()
         .map((snap) =>
-            snap.docs.map((d) => Activity.fromFirestore(d.data(), d.id)).toList());
+            snap.docs.map((d) => Exercise.fromFirestore(d.data(), d.id)).toList());
+  }
+
+  Stream<List<Exercise>> getRecentClanActivities(String clanId) {
+    return _db
+        .collection("clans")
+        .doc(clanId)
+        .collection("activities")
+        .orderBy("timestamp", descending: true)
+        .limit(5)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((d) => Exercise.fromFirestore(d.data(), d.id))
+            .toList());
   }
 
   Stream<List<Clan>> getAllClans() {

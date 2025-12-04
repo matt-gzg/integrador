@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:integrador/model/appUser_model.dart';
-import 'package:integrador/services/exerciseLog_service.dart';
+import 'package:integrador/services/exercise_service.dart';
 import 'package:integrador/components/date_filter_widget.dart';
 import 'package:integrador/components/log_card_widget.dart';
 import 'package:integrador/components/log_skeleton_widget.dart';
@@ -22,13 +22,13 @@ class ExerciseLogPage extends StatefulWidget {
 
 class _ExerciseLogPageState extends State<ExerciseLogPage> {
   DateTime? _selectedDate;
-  late ExerciseLogService logService;
+  late ExerciseService logService;
   late Stream<List<dynamic>> logStream;
 
   @override
   void initState() {
     super.initState();
-    logService = ExerciseLogService(widget.user.clanId!);
+    logService = ExerciseService(widget.user.clanId!);
     logStream = logService.getUserLogs(widget.user.id!);
   }
 

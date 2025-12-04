@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:integrador/model/appUser_model.dart';
 import 'package:integrador/view/clanPage_page.dart';
-import 'package:integrador/view/exerciseLog_page.dart';
+import 'package:integrador/view/exercise_page.dart';
 import 'package:integrador/view/profile_page.dart';
 import 'package:integrador/view/rank_page.dart';
 
