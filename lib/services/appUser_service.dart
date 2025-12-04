@@ -33,4 +33,31 @@ class AppUserService {
     final uid = FirebaseAuth.instance.currentUser!.uid;
     return users.doc(uid).delete();
   }
+
+  Future<void> updateUserName(String newName, String? clanId) async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final db = FirebaseFirestore.instance;
+
+    // 1 — Atualiza nome no documento do usuário
+    await db.collection("users").doc(uid).update({
+      "name": newName,
+    });
+
+    // 2 — Atualiza nome no clã (se estiver em um)
+    if (clanId != null && clanId.isNotEmpty) {
+      await db
+          .collection("clans")
+          .doc(clanId)
+          .collection("members")
+          .doc(uid)
+          .update({"name": newName});
+    }
+  }
+
+  Future<void> removeUserFromClan(String uid) async {
+    await users.doc(uid).update({
+      "clanId": "",
+    });
+  }
+
 }
