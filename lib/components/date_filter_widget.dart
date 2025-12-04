@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 
 // Formatador de máscara para data brasileira (DD/MM/YYYY)
 class DateMaskFormatter extends TextInputFormatter {
@@ -403,19 +402,22 @@ class _DateFilterWidgetState extends State<DateFilterWidget> {
           if (widget.selectedDate != null) ...[
             SizedBox(height: 8),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  DateFormat(
-                    "EEEE, dd 'de' MMMM 'de' yyyy",
-                    "pt_BR",
-                  ).format(widget.selectedDate!),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Text(
+                    DateFormat(
+                      "EEEE, dd 'de' MMMM 'de' yyyy",
+                      "pt_BR",
+                    ).format(widget.selectedDate!),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                SizedBox(height: 8,),
                 Row(
                   children: [
                     _buildIconButton(

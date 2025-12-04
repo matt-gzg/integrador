@@ -179,7 +179,7 @@ class AddExerciseDialog {
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 12),
         ),
-        value: selectedIntensity,
+        initialValue: selectedIntensity,
         items: const [
           DropdownMenuItem(
             value: "baixa",

@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:integrador/firebase_options.dart';
-import 'package:integrador/view/login_page.dart';
+import 'package:integrador/view/auth_page.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -13,7 +13,7 @@ void main() async {
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginPage(),
+      home: AuthPage(),
 
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
