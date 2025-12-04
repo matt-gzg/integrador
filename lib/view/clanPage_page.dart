@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:integrador/model/appUser_model.dart';
+import 'package:integrador/model/clan_model.dart';
 import 'package:integrador/services/appUser_service.dart';
 import 'package:integrador/services/clan_service.dart';
 import 'package:integrador/view/joinApp_page.dart';
@@ -17,6 +18,182 @@ class _ClanPageState extends State<ClanPage> {
   late BuildContext parentContext;
   bool _membersExpanded = false; // Alterado para false
   bool _activitiesExpanded = false; // Alterado para false
+
+  // Função para remover um membro do clã (apenas líder)
+  void _removeMember(
+    BuildContext context,
+    String memberId,
+    String memberName,
+    String clanId,
+  ) {
+    final stateContext = context;
+
+    showDialog(
+      context: stateContext,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Color(0xFF111111),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: Colors.grey[800]!, width: 1),
+        ),
+        child: Container(
+          padding: EdgeInsets.all(24),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(24)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.red.withOpacity(0.1),
+                  border: Border.all(
+                    color: Colors.red.withOpacity(0.3),
+                    width: 2,
+                  ),
+                ),
+                child: Icon(Icons.warning_rounded, color: Colors.red, size: 30),
+              ),
+              SizedBox(height: 20),
+
+              Text(
+                "Remover Membro",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 12),
+
+              Text(
+                "Tem certeza que deseja remover '$memberName' do clã? Esta ação não pode ser desfeita.",
+                style: TextStyle(
+                  color: Colors.grey[400],
+                  fontSize: 14,
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 24),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[600]!, width: 1),
+                      ),
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        style: TextButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          "Cancelar",
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+
+                  Expanded(
+                    child: Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.red.shade600, Colors.red.shade800],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.red.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: TextButton(
+                        onPressed: () async {
+                          Navigator.pop(dialogContext);
+
+                          showDialog(
+                            context: stateContext,
+                            barrierDismissible: false,
+                            useRootNavigator: true,
+                            builder: (_) => const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.orange,
+                              ),
+                            ),
+                          );
+
+                          try {
+                            final clanService = ClanService();
+                            await clanService.removeMember(
+                              clanId: clanId,
+                              memberId: memberId,
+                              leaderId: widget.user.id!,
+                            );
+
+                            if (mounted) {
+                              Navigator.pop(stateContext); // fecha loading
+
+                              // Se o membro removido for o usuário atual, redireciona
+                              if (memberId == widget.user.id) {
+                                Navigator.of(stateContext).pushReplacement(
+                                  MaterialPageRoute(
+                                    builder: (context) => const JoinAppPage(),
+                                  ),
+                                );
+                              }
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              Navigator.pop(stateContext); // fecha loading
+                              ScaffoldMessenger.of(stateContext).showSnackBar(
+                                SnackBar(
+                                  content: Text('Erro ao remover membro: $e'),
+                                  backgroundColor: Colors.red,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        style: TextButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          "Remover",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   // Função para sair do clã
   void _leaveClan(BuildContext context) {
@@ -486,6 +663,8 @@ class _ClanPageState extends State<ClanPage> {
                 children: members.asMap().entries.map((entry) {
                   final index = entry.key;
                   final m = entry.value;
+                  // Obtém o clanId do usuário
+                  final clanId = widget.user.clanId ?? '';
                   return Container(
                     margin: EdgeInsets.only(bottom: 8),
                     decoration: BoxDecoration(
@@ -528,26 +707,89 @@ class _ClanPageState extends State<ClanPage> {
                         "Membro",
                         style: TextStyle(color: Colors.grey[400], fontSize: 11),
                       ),
-                      trailing: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Colors.orange.withOpacity(0.3),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Colors.orange.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Text(
+                              "+${m.points}",
+                              style: TextStyle(
+                                color: Colors.orange,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          "+${m.points}",
-                          style: TextStyle(
-                            color: Colors.orange,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
+                          if (widget.user.id != null)
+                            StreamBuilder<Clan>(
+                              stream: ClanService().getClan(clanId),
+                              builder: (context, snapshot) {
+                                final isLeader =
+                                    snapshot.hasData &&
+                                    snapshot.data?.leaderId == widget.user.id;
+
+                                // Não mostra remover se o usuário é líder OU se o membro é o próprio líder
+                                if (!isLeader ||
+                                    m.id == snapshot.data?.leaderId) {
+                                  return SizedBox.shrink();
+                                }
+
+                                return SizedBox(width: 8);
+                              },
+                            ),
+                          if (widget.user.id != null)
+                            StreamBuilder<Clan>(
+                              stream: ClanService().getClan(clanId),
+                              builder: (context, snapshot) {
+                                final isLeader =
+                                    snapshot.hasData &&
+                                    snapshot.data?.leaderId == widget.user.id;
+
+                                // Não mostra remover se o usuário não é líder OU se o membro é o próprio líder
+                                if (!isLeader ||
+                                    m.id == snapshot.data?.leaderId) {
+                                  return SizedBox.shrink();
+                                }
+
+                                return Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: Colors.red.withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: IconButton(
+                                    padding: EdgeInsets.zero,
+                                    icon: Icon(
+                                      Icons.close_rounded,
+                                      color: Colors.red,
+                                      size: 16,
+                                    ),
+                                    onPressed: () => _removeMember(
+                                      context,
+                                      m.id,
+                                      m.name,
+                                      clanId,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
                       ),
                     ),
                   );
