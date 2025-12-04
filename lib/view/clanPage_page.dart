@@ -436,38 +436,17 @@ class _ClanPageState extends State<ClanPage> {
     });
 
     return Scaffold(
-      backgroundColor: Color(0xFF0A0A0A),
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text(
-          "Gym Royale",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-          ),
-        ),
-        backgroundColor: Color(0xFF111111),
-        elevation: 0,
-        iconTheme: IconThemeData(color: Colors.orange),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: Container(
-              padding: EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.transparent,
-              ),
-              child: Icon(
-                Icons.exit_to_app_rounded,
-                color: Colors.red,
-                size: 22,
-              ),
-            ),
-            onPressed: () => _leaveClan(context),
-            tooltip: "Sair do Clã",
-          ),
-        ],
+        title: Text("Clã: ${user.clanId}"),
+        backgroundColor: Colors.deepPurple,
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.amber,
+        child: Icon(Icons.add, color: Colors.deepPurple),
+        onPressed: () {
+          // registrar atividade
+        },
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -475,7 +454,7 @@ class _ClanPageState extends State<ClanPage> {
             StreamBuilder(
               stream: clanStream,
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return _buildClanHeaderSkeleton();
+                if (!snapshot.hasData) return SizedBox();
                 final clan = snapshot.data!;
                 return _buildClanHeader(clan);
               },
@@ -485,7 +464,7 @@ class _ClanPageState extends State<ClanPage> {
             StreamBuilder(
               stream: membersStream,
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return _buildSectionSkeleton();
+                if (!snapshot.hasData) return SizedBox();
                 final members = snapshot.data!;
                 return _buildMembersAccordion(members);
               },
@@ -495,7 +474,7 @@ class _ClanPageState extends State<ClanPage> {
             StreamBuilder(
               stream: activitiesStream,
               builder: (context, snapshot) {
-                if (!snapshot.hasData) return _buildSectionSkeleton();
+                if (!snapshot.hasData) return SizedBox();
                 final activities = snapshot.data!;
                 return _buildActivitiesAccordion(activities);
               },
@@ -509,108 +488,24 @@ class _ClanPageState extends State<ClanPage> {
   Widget _buildClanHeader(clan) {
     return Container(
       width: double.infinity,
-      margin: EdgeInsets.all(20),
-      padding: EdgeInsets.all(30),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF1A1A1A), Color(0xFF111111)],
+        color: Colors.deepPurple,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
         ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey[800]!, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.5),
-            blurRadius: 20,
-            offset: Offset(0, 10),
-          ),
-        ],
       ),
       child: Column(
         children: [
-          // Ícone do clã
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.orange.shade600, Colors.orange.shade800],
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.orange.withOpacity(0.3),
-                  blurRadius: 15,
-                  offset: Offset(0, 5),
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.people_alt_rounded,
-              color: Colors.white,
-              size: 40,
-            ),
-          ),
-          SizedBox(height: 20),
-
-          // Nome do clã
-          Text(
-            clan.name.toUpperCase(),
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 8),
-
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.6),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.orange.withOpacity(0.3),
-                width: 1,
-              ),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  "PONTUAÇÃO TOTAL",
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  clan.points.toString(),
-                  style: TextStyle(
-                    color: Colors.orange,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  "pontos",
-                  style: TextStyle(
-                    color: Colors.grey[500],
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          Text("Clã ${clan.name}",
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold)),
+          SizedBox(height: 10),
+          Text("Pontos: ${clan.points}",
+              style: TextStyle(color: Colors.amber, fontSize: 20)),
         ],
       ),
     );
@@ -618,470 +513,42 @@ class _ClanPageState extends State<ClanPage> {
 
   Widget _buildMembersAccordion(List members) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Color(0xFF111111),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[800]!, width: 1),
-        ),
-        child: ExpansionTile(
-          key: Key('members_accordion'),
-          initiallyExpanded: _membersExpanded, // Agora false por padrão
-          onExpansionChanged: (expanded) {
-            setState(() {
-              _membersExpanded = expanded;
-            });
-          },
-          collapsedBackgroundColor: Color(0xFF111111),
-          backgroundColor: Color(0xFF111111),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          collapsedShape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          tilePadding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          title: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
-                ),
-                child: Icon(
-                  Icons.people_outline,
-                  color: Colors.orange,
-                  size: 20,
-                ),
-              ),
-              SizedBox(width: 12),
-              Text(
-                "MEMBROS",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 1.1,
-                ),
-              ),
-              Spacer(),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.grey[800],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  "${members.length}",
-                  style: TextStyle(
-                    color: Colors.orange,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          trailing: Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.orange.withOpacity(0.3)),
-            ),
-            child: Icon(
-              _membersExpanded ? Icons.expand_less : Icons.expand_more,
-              color: Colors.orange,
-              size: 16,
-            ),
-          ),
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
-              child: Column(
-                children: members.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final m = entry.value;
-                  // Obtém o clanId do usuário
-                  final clanId = widget.user.clanId ?? '';
-                  return Container(
-                    margin: EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: Color(0xFF1A1A1A),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey[800]!, width: 1),
-                    ),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      leading: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.orange.shade600,
-                              Colors.orange.shade800,
-                            ],
-                          ),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                      ),
-                      title: Text(
-                        m.name,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 15,
-                        ),
-                      ),
-                      subtitle: Text(
-                        "Membro",
-                        style: TextStyle(color: Colors.grey[400], fontSize: 11),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: Colors.orange.withOpacity(0.3),
-                              ),
-                            ),
-                            child: Text(
-                              "+${m.points}",
-                              style: TextStyle(
-                                color: Colors.orange,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                          if (widget.user.id != null)
-                            StreamBuilder<Clan>(
-                              stream: ClanService().getClan(clanId),
-                              builder: (context, snapshot) {
-                                final isLeader =
-                                    snapshot.hasData &&
-                                    snapshot.data?.leaderId == widget.user.id;
-
-                                // Não mostra remover se o usuário é líder OU se o membro é o próprio líder
-                                if (!isLeader ||
-                                    m.id == snapshot.data?.leaderId) {
-                                  return SizedBox.shrink();
-                                }
-
-                                return SizedBox(width: 8);
-                              },
-                            ),
-                          if (widget.user.id != null)
-                            StreamBuilder<Clan>(
-                              stream: ClanService().getClan(clanId),
-                              builder: (context, snapshot) {
-                                final isLeader =
-                                    snapshot.hasData &&
-                                    snapshot.data?.leaderId == widget.user.id;
-
-                                // Não mostra remover se o usuário não é líder OU se o membro é o próprio líder
-                                if (!isLeader ||
-                                    m.id == snapshot.data?.leaderId) {
-                                  return SizedBox.shrink();
-                                }
-
-                                return Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: Colors.red.withOpacity(0.3),
-                                    ),
-                                  ),
-                                  child: IconButton(
-                                    padding: EdgeInsets.zero,
-                                    icon: Icon(
-                                      Icons.close_rounded,
-                                      color: Colors.red,
-                                      size: 16,
-                                    ),
-                                    onPressed: () => _removeMember(
-                                      context,
-                                      m.id,
-                                      m.name,
-                                      clanId,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-        ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          Text("Membros", style: TextStyle(
+            fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+          SizedBox(height: 10),
+          ...members.map((m) => ListTile(
+            leading: Icon(Icons.person, color: Colors.deepPurple),
+            title: Text(m.name),
+            trailing: Text("+${m.points}", style: TextStyle(
+              color: Colors.deepPurple, fontWeight: FontWeight.bold)),
+          )),
+        ],
       ),
     );
   }
 
   Widget _buildActivitiesAccordion(List<Exercise> activities) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Color(0xFF111111),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[800]!, width: 1),
-        ),
-        child: ExpansionTile(
-          key: Key('activities_accordion'),
-          initiallyExpanded: _activitiesExpanded,
-          onExpansionChanged: (expanded) {
-            setState(() => _activitiesExpanded = expanded);
-          },
-          collapsedBackgroundColor: Color(0xFF111111),
-          backgroundColor: Color(0xFF111111),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          collapsedShape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          tilePadding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          title: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
-                ),
-                child: Icon(
-                  Icons.fitness_center,
-                  color: Colors.orange,
-                  size: 20,
-                ),
-              ),
-              SizedBox(width: 12),
-              Text(
-                "ATIVIDADES RECENTES",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 1.1,
-                ),
-              ),
-            ],
-          ),
-          trailing: Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.orange.withOpacity(0.3)),
-            ),
-            child: Icon(
-              _activitiesExpanded ? Icons.expand_less : Icons.expand_more,
-              color: Colors.orange,
-              size: 16,
-            ),
-          ),
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
-              child: Column(
-                children: activities.map((a) {
-                  final timeAgo = _formatTimeAgo(a.timestamp);
-
-                  return Container(
-                    margin: EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: Color(0xFF1A1A1A),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey[800]!, width: 1),
-                    ),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      leading: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: Colors.orange.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Icon(
-                          Icons.directions_run,
-                          color: Colors.orange,
-                          size: 20,
-                        ),
-                      ),
-
-                      // título = nome da atividade
-                      title: Text(
-                        "${a.activityName} — ${a.intensity}",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-
-                      subtitle: Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "${a.duration} min • Por ${a.userName}",
-                              style: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 11,
-                              ),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              timeAgo,
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      trailing: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.orange.shade600,
-                              Colors.orange.shade800,
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          "+${a.points}",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatTimeAgo(DateTime time) {
-    final diff = DateTime.now().difference(time);
-
-    if (diff.inMinutes < 1) return "Agora mesmo";
-    if (diff.inMinutes < 60) return "${diff.inMinutes} min atrás";
-    if (diff.inHours < 24) return "${diff.inHours} h atrás";
-    if (diff.inDays == 1) return "Ontem";
-    return "${diff.inDays} dias atrás";
-  }
-
-  Widget _buildClanHeaderSkeleton() {
-    return Container(
-      width: double.infinity,
-      margin: EdgeInsets.all(20),
-      padding: EdgeInsets.all(30),
-      decoration: BoxDecoration(
-        color: Color(0xFF111111),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey[800]!),
-      ),
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.grey[800],
-              shape: BoxShape.circle,
-            ),
-          ),
-          SizedBox(height: 20),
-          Container(
-            width: 150,
-            height: 24,
-            decoration: BoxDecoration(
-              color: Colors.grey[800],
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          SizedBox(height: 30),
-          Container(
-            width: 200,
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.grey[800],
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionSkeleton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      child: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            height: 200,
-            decoration: BoxDecoration(
-              color: Color(0xFF111111),
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
+          Text("Atividades", style: TextStyle(
+            fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+          SizedBox(height: 10),
+          ...activities.map((a) => Card(
+                margin: EdgeInsets.only(bottom: 10),
+                child: ListTile(
+                  title: Text(a.activity),
+                  subtitle: Text(a.userName),
+                  trailing: Text("+${a.points}",
+                      style: TextStyle(
+                          color: Colors.deepPurple,
+                          fontWeight: FontWeight.bold)),
+                ),
+              )),
         ],
       ),
     );
