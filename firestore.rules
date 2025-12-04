@@ -45,8 +45,7 @@ service cloud.firestore {
       }
 
       match /exerciseLogs/{logId} {
-        allow read: if request.auth != null && 
-          exists(/databases/$(database)/documents/clans/$(clanId)/members/$(request.auth.uid));
+        allow read: if request.auth != null;
         allow create: if request.auth != null && 
           exists(/databases/$(database)/documents/clans/$(clanId)/members/$(request.auth.uid));
         allow update: if request.auth != null && 

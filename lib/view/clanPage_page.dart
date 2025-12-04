@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:integrador/model/appUser_model.dart';
 import 'package:integrador/model/clan_model.dart';
 import 'package:integrador/model/exercise_model.dart';
@@ -391,6 +392,27 @@ class _ClanPageState extends State<ClanPage> {
     );
     final membersStream = ClanService().getClanMembers(widget.user.clanId!);
     parentContext = context;
+
+    // Monitora se o usuário foi removido da subcoleção de membros
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FirebaseFirestore.instance
+          .collection('clans')
+          .doc(widget.user.clanId)
+          .collection('members')
+          .doc(widget.user.id)
+          .snapshots()
+          .listen((snapshot) {
+            if (!snapshot.exists && mounted) {
+              // Usuário foi removido! Redireciona para JoinAppPage
+              Navigator.of(context).pushReplacementNamed('/') ??
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => const JoinAppPage(),
+                    ),
+                  );
+            }
+          });
+    });
 
     return Scaffold(
       backgroundColor: Color(0xFF0A0A0A),
