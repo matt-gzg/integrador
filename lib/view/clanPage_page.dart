@@ -320,20 +320,23 @@ class _ClanPageState extends State<ClanPage> {
                             final clanService = ClanService();
                             final userService = AppUserService();
 
-                            await clanService.leaveClan(
+                            // Verifica se é líder e deleta o clã se necessário
+                            await clanService.leaderLeaveClan(
                               clanId: clanId,
                               userId: userId,
+                              leaderId: userId,
                             );
 
                             await userService.updateUser(
                               widget.user.copyWith(clanId: ""),
                             );
 
+                            if (!mounted) return;
+
                             // fecha loading
-                            Navigator.of(
-                              stateContext,
-                              rootNavigator: true,
-                            ).pop();
+                            if (Navigator.canPop(stateContext)) {
+                              Navigator.pop(stateContext);
+                            }
 
                             if (!mounted) return;
 
@@ -345,10 +348,11 @@ class _ClanPageState extends State<ClanPage> {
                               (route) => false,
                             );
                           } catch (e) {
-                            Navigator.of(
-                              stateContext,
-                              rootNavigator: true,
-                            ).pop();
+                            if (!mounted) return;
+
+                            if (Navigator.canPop(stateContext)) {
+                              Navigator.pop(stateContext);
+                            }
 
                             if (!mounted) return;
 
@@ -404,6 +408,23 @@ class _ClanPageState extends State<ClanPage> {
           .listen((snapshot) {
             if (!snapshot.exists && mounted) {
               // Usuário foi removido! Redireciona para JoinAppPage
+              Navigator.of(context).pushReplacementNamed('/') ??
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => const JoinAppPage(),
+                    ),
+                  );
+            }
+          });
+
+      // Monitora se o clã foi deletado
+      FirebaseFirestore.instance
+          .collection('clans')
+          .doc(widget.user.clanId)
+          .snapshots()
+          .listen((snapshot) {
+            if (!snapshot.exists && mounted) {
+              // Clã foi deletado! Redireciona para JoinAppPage
               Navigator.of(context).pushReplacementNamed('/') ??
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(

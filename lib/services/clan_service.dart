@@ -283,20 +283,65 @@ class ClanService {
 
   Future<void> deleteClan(String clanId) async {
     final clanRef = FirebaseFirestore.instance.collection("clans").doc(clanId);
+    final batch = FirebaseFirestore.instance.batch();
 
     // Apagar members
     final membersSnap = await clanRef.collection("members").get();
     for (var doc in membersSnap.docs) {
-      await doc.reference.delete();
+      batch.delete(doc.reference);
     }
 
     // Apagar activities
     final activitiesSnap = await clanRef.collection("activities").get();
     for (var doc in activitiesSnap.docs) {
-      await doc.reference.delete();
+      batch.delete(doc.reference);
+    }
+
+    // Apagar exerciseLogs
+    final exerciseLogsSnap = await clanRef.collection("exerciseLogs").get();
+    for (var doc in exerciseLogsSnap.docs) {
+      batch.delete(doc.reference);
     }
 
     // Apagar documento do clã
-    await clanRef.delete();
+    batch.delete(clanRef);
+
+    // Executar tudo em uma única operação
+    await batch.commit();
+  }
+
+  /// Se o usuário for o líder, deleta o clã; caso contrário, apenas sai
+  Future<void> leaderLeaveClan({
+    required String clanId,
+    required String userId,
+    required String leaderId,
+  }) async {
+    final clanRef = FirebaseFirestore.instance.collection("clans").doc(clanId);
+    final usersCollection = FirebaseFirestore.instance.collection("users");
+
+    // Verifica se o usuário é o líder
+    final clanSnap = await clanRef.get();
+    if (clanSnap.data()?['leaderId'] == leaderId) {
+      // Líder saindo: remover todos os membros primeiro, depois deletar o clã
+
+      // 1. Pegar todos os membros
+      final membersSnap = await clanRef.collection("members").get();
+      final batch = FirebaseFirestore.instance.batch();
+
+      // 2. Remover clanId de todos os membros na coleção 'users'
+      for (var memberDoc in membersSnap.docs) {
+        final memberId = memberDoc.id;
+        batch.update(usersCollection.doc(memberId), {'clanId': ''});
+      }
+
+      // Executar updates de usuários
+      await batch.commit();
+
+      // 3. Deletar o clã (que também deleta subcoleções)
+      await deleteClan(clanId);
+    } else {
+      // Membro normal saindo
+      await leaveClan(clanId: clanId, userId: userId);
+    }
   }
 }
