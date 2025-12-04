@@ -15,6 +15,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  late AppUser currentUser;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -23,11 +24,24 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    currentUser = widget.user;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final List<Widget> screens = [
-      ClanPage(user: widget.user),
-      ExerciseLogPage(user: widget.user),
-      ProfilePage(user: widget.user),
+      ClanPage(user: currentUser),
+      ExerciseLogPage(user: currentUser),
+      ProfilePage(
+        user: currentUser,
+        onUserUpdated: (updatedUser) {
+          setState(() {
+            currentUser = updatedUser;
+          });
+        },
+      ),
     ];
 
     return Scaffold(

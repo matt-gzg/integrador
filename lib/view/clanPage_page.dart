@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:integrador/model/appUser_model.dart';
+import 'package:integrador/services/appUser_service.dart';
 import 'package:integrador/services/clan_service.dart';
+import 'package:integrador/view/joinApp_page.dart';
 
 class ClanPage extends StatefulWidget {
   final AppUser user;
@@ -12,27 +14,26 @@ class ClanPage extends StatefulWidget {
 }
 
 class _ClanPageState extends State<ClanPage> {
+  late BuildContext parentContext;
   bool _membersExpanded = false; // Alterado para false
   bool _activitiesExpanded = false; // Alterado para false
 
   // Função para sair do clã
   void _leaveClan(BuildContext context) {
+    final stateContext =
+        context; // contexto do State (usado para navegação/mostrar loading)
+
     showDialog(
-      context: context,
-      builder: (context) => Dialog(
+      context: stateContext,
+      builder: (dialogContext) => Dialog(
         backgroundColor: Color(0xFF111111),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
-          side: BorderSide(
-            color: Colors.grey[800]!,
-            width: 1,
-          ),
+          side: BorderSide(color: Colors.grey[800]!, width: 1),
         ),
         child: Container(
           padding: EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(24)),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -47,14 +48,10 @@ class _ClanPageState extends State<ClanPage> {
                     width: 2,
                   ),
                 ),
-                child: Icon(
-                  Icons.warning_rounded,
-                  color: Colors.red,
-                  size: 30,
-                ),
+                child: Icon(Icons.warning_rounded, color: Colors.red, size: 30),
               ),
               SizedBox(height: 20),
-            
+
               Text(
                 "Sair do Clã",
                 style: TextStyle(
@@ -64,7 +61,7 @@ class _ClanPageState extends State<ClanPage> {
                 ),
               ),
               SizedBox(height: 12),
-              
+
               Text(
                 "Tem certeza que deseja sair do clã? Você perderá todos os pontos e progresso associados.",
                 style: TextStyle(
@@ -75,7 +72,7 @@ class _ClanPageState extends State<ClanPage> {
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 24),
-              
+
               Row(
                 children: [
                   Expanded(
@@ -84,13 +81,10 @@ class _ClanPageState extends State<ClanPage> {
                       decoration: BoxDecoration(
                         color: Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.grey[600]!,
-                          width: 1,
-                        ),
+                        border: Border.all(color: Colors.grey[600]!, width: 1),
                       ),
                       child: TextButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => Navigator.pop(dialogContext),
                         style: TextButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -107,16 +101,13 @@ class _ClanPageState extends State<ClanPage> {
                     ),
                   ),
                   SizedBox(width: 12),
-                  
+
                   Expanded(
                     child: Container(
                       height: 44,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            Colors.red.shade600,
-                            Colors.red.shade800,
-                          ],
+                          colors: [Colors.red.shade600, Colors.red.shade800],
                         ),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
@@ -128,8 +119,67 @@ class _ClanPageState extends State<ClanPage> {
                         ],
                       ),
                       child: TextButton(
-                        onPressed: () {
-                          // Implementar lógica para sair do clã
+                        onPressed: () async {
+                          // fecha o diálogo de confirmação
+                          Navigator.pop(dialogContext);
+
+                          // abrir loading usando o contexto do State
+                          showDialog(
+                            context: stateContext,
+                            barrierDismissible: false,
+                            useRootNavigator: true,
+                            builder: (_) => const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.orange,
+                              ),
+                            ),
+                          );
+
+                          try {
+                            final clanId = widget.user.clanId!;
+                            final userId = widget.user.id!;
+                            final clanService = ClanService();
+                            final userService = AppUserService();
+
+                            await clanService.leaveClan(
+                              clanId: clanId,
+                              userId: userId,
+                            );
+
+                            await userService.updateUser(
+                              widget.user.copyWith(clanId: ""),
+                            );
+
+                            // fecha loading
+                            Navigator.of(
+                              stateContext,
+                              rootNavigator: true,
+                            ).pop();
+
+                            if (!mounted) return;
+
+                            // Navega para JoinAppPage e remove backstack
+                            Navigator.of(stateContext).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                builder: (_) => const JoinAppPage(),
+                              ),
+                              (route) => false,
+                            );
+                          } catch (e) {
+                            Navigator.of(
+                              stateContext,
+                              rootNavigator: true,
+                            ).pop();
+
+                            if (!mounted) return;
+
+                            ScaffoldMessenger.of(stateContext).showSnackBar(
+                              SnackBar(
+                                content: Text("Erro ao sair do clã: $e"),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
                         },
                         style: TextButton.styleFrom(
                           shape: RoundedRectangleBorder(
@@ -158,8 +208,11 @@ class _ClanPageState extends State<ClanPage> {
   @override
   Widget build(BuildContext context) {
     final clanStream = ClanService().getClan(widget.user.clanId!);
-    final activitiesStream = ClanService().getClanActivities(widget.user.clanId!);
+    final activitiesStream = ClanService().getClanActivities(
+      widget.user.clanId!,
+    );
     final membersStream = ClanService().getClanMembers(widget.user.clanId!);
+    parentContext = context;
 
     return Scaffold(
       backgroundColor: Color(0xFF0A0A0A),
@@ -241,16 +294,10 @@ class _ClanPageState extends State<ClanPage> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF1A1A1A),
-            Color(0xFF111111),
-          ],
+          colors: [Color(0xFF1A1A1A), Color(0xFF111111)],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: Colors.grey[800]!,
-          width: 1,
-        ),
+        border: Border.all(color: Colors.grey[800]!, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.5),
@@ -269,10 +316,7 @@ class _ClanPageState extends State<ClanPage> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  Colors.orange.shade600,
-                  Colors.orange.shade800,
-                ],
+                colors: [Colors.orange.shade600, Colors.orange.shade800],
               ),
               shape: BoxShape.circle,
               boxShadow: [
@@ -290,7 +334,7 @@ class _ClanPageState extends State<ClanPage> {
             ),
           ),
           SizedBox(height: 20),
-          
+
           // Nome do clã
           Text(
             clan.name.toUpperCase(),
@@ -303,7 +347,7 @@ class _ClanPageState extends State<ClanPage> {
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 8),
-          
+
           Container(
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
@@ -358,10 +402,7 @@ class _ClanPageState extends State<ClanPage> {
         decoration: BoxDecoration(
           color: Color(0xFF111111),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.grey[800]!,
-            width: 1,
-          ),
+          border: Border.all(color: Colors.grey[800]!, width: 1),
         ),
         child: ExpansionTile(
           key: Key('members_accordion'),
@@ -388,9 +429,7 @@ class _ClanPageState extends State<ClanPage> {
                 decoration: BoxDecoration(
                   color: Colors.orange.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: Colors.orange.withOpacity(0.3),
-                  ),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
                 ),
                 child: Icon(
                   Icons.people_outline,
@@ -432,9 +471,7 @@ class _ClanPageState extends State<ClanPage> {
             decoration: BoxDecoration(
               color: Colors.orange.withOpacity(0.1),
               shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.orange.withOpacity(0.3),
-              ),
+              border: Border.all(color: Colors.orange.withOpacity(0.3)),
             ),
             child: Icon(
               _membersExpanded ? Icons.expand_less : Icons.expand_more,
@@ -454,13 +491,13 @@ class _ClanPageState extends State<ClanPage> {
                     decoration: BoxDecoration(
                       color: Color(0xFF1A1A1A),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.grey[800]!,
-                        width: 1,
-                      ),
+                      border: Border.all(color: Colors.grey[800]!, width: 1),
                     ),
                     child: ListTile(
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       leading: Container(
                         width: 40,
                         height: 40,
@@ -489,13 +526,13 @@ class _ClanPageState extends State<ClanPage> {
                       ),
                       subtitle: Text(
                         "Membro",
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 11,
-                        ),
+                        style: TextStyle(color: Colors.grey[400], fontSize: 11),
                       ),
                       trailing: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.orange.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
@@ -530,10 +567,7 @@ class _ClanPageState extends State<ClanPage> {
         decoration: BoxDecoration(
           color: Color(0xFF111111),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.grey[800]!,
-            width: 1,
-          ),
+          border: Border.all(color: Colors.grey[800]!, width: 1),
         ),
         child: ExpansionTile(
           key: Key('activities_accordion'),
@@ -560,15 +594,9 @@ class _ClanPageState extends State<ClanPage> {
                 decoration: BoxDecoration(
                   color: Colors.orange.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: Colors.orange.withOpacity(0.3),
-                  ),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
                 ),
-                child: Icon(
-                  Icons.bolt,
-                  color: Colors.orange,
-                  size: 20,
-                ),
+                child: Icon(Icons.bolt, color: Colors.orange, size: 20),
               ),
               SizedBox(width: 12),
               Text(
@@ -588,9 +616,7 @@ class _ClanPageState extends State<ClanPage> {
             decoration: BoxDecoration(
               color: Colors.orange.withOpacity(0.1),
               shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.orange.withOpacity(0.3),
-              ),
+              border: Border.all(color: Colors.orange.withOpacity(0.3)),
             ),
             child: Icon(
               _activitiesExpanded ? Icons.expand_less : Icons.expand_more,
@@ -602,74 +628,84 @@ class _ClanPageState extends State<ClanPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
               child: Column(
-                children: activities.map((a) => Container(
-                  margin: EdgeInsets.only(bottom: 8),
-                  decoration: BoxDecoration(
-                    color: Color(0xFF1A1A1A),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.grey[800]!,
-                      width: 1,
-                    ),
-                  ),
-                  child: ListTile(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    leading: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: Colors.orange.withOpacity(0.3),
+                children: activities
+                    .map(
+                      (a) => Container(
+                        margin: EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF1A1A1A),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.grey[800]!,
+                            width: 1,
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          leading: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: Colors.orange.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.assignment_turned_in,
+                              color: Colors.orange,
+                              size: 20,
+                            ),
+                          ),
+                          title: Text(
+                            a.activity,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              "Por ${a.userName}",
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                          trailing: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.orange.shade600,
+                                  Colors.orange.shade800,
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              "+${a.points}",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                      child: Icon(
-                        Icons.assignment_turned_in,
-                        color: Colors.orange,
-                        size: 20,
-                      ),
-                    ),
-                    title: Text(
-                      a.activity,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
-                      ),
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        "Por ${a.userName}",
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                    trailing: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.orange.shade600,
-                            Colors.orange.shade800,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        "+${a.points}",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ),
-                )).toList(),
+                    )
+                    .toList(),
               ),
             ),
           ],

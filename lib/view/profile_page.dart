@@ -9,8 +9,9 @@ import 'package:integrador/view/auth_page.dart';
 
 class ProfilePage extends StatefulWidget {
   final AppUser user;
+  final Function(AppUser) onUserUpdated;
 
-  const ProfilePage({super.key, required this.user});
+  const ProfilePage({super.key, required this.user, required this.onUserUpdated});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -237,17 +238,57 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (newName.isEmpty) return;
 
-    // Aqui você pode atualizar no Firebase Firestore
-    // e opcionalmente no FirebaseAuth também
-
-    print("Salvar novo nome: $newName");
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Perfil atualizado!"),
-        backgroundColor: Colors.green,
-      ),
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) =>
+          Center(child: CircularProgressIndicator(color: Colors.orange)),
     );
+
+    try {
+      // Atualizar no Firestore
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(widget.user.id)
+          .update({"name": newName});
+
+      if (widget.user.clanId != null && widget.user.clanId!.isNotEmpty) {
+        await FirebaseFirestore.instance
+            .collection("clans")
+            .doc(widget.user.clanId)
+            .collection("members")
+            .doc(widget.user.id)
+            .update({"name": newName});
+      }
+
+      // Atualizar displayName do FirebaseAuth
+      await FirebaseAuth.instance.currentUser!.updateDisplayName(newName);
+
+      // Atualizar o objeto local
+      setState(() {
+        widget.user.name = newName;
+      });
+
+      widget.onUserUpdated(widget.user);
+
+      Navigator.pop(context); // fecha loading
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Nome atualizado!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Erro ao atualizar nome: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   void logout() async {
