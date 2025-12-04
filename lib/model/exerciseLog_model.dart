@@ -1,14 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ExerciseLog {
-  final String id;
-  final String userId;
-  final String userName;
-  final String activityName;
-  final String intensity;
-  final int duration; // minutos
-  final int points;
-  final DateTime timestamp;
+  String id;
+  String userId;
+  String userName;
+  String activityName;
+  String intensity;
+  int duration; // minutos
+  int points;
+  DateTime timestamp;
 
   ExerciseLog({
     required this.id,
