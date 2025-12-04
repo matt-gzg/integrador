@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 // Formatador de máscara para data brasileira (DD/MM/YYYY)
 class DateMaskFormatter extends TextInputFormatter {
@@ -110,33 +111,226 @@ class _DateFilterWidgetState extends State<DateFilterWidget> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+    // tempDate guarda a seleção enquanto o modal está aberto
+    DateTime tempDate = widget.selectedDate ?? DateTime.now();
+
+    // controller inicializado com a data atual/selecionada
+    final TextEditingController controller = TextEditingController(
+      text: DateFormat("dd/MM/yyyy").format(tempDate),
+    );
+
+    // Função utilitária para parsear string "DD/MM/YYYY" -> DateTime?
+    DateTime? parseMaskedDate(String text) {
+      final clean = text.replaceAll(RegExp(r'\D'), '');
+      if (clean.length != 8) return null;
+      try {
+        final d = int.parse(clean.substring(0, 2));
+        final m = int.parse(clean.substring(2, 4));
+        final y = int.parse(clean.substring(4, 8));
+        final candidate = DateTime(y, m, d);
+        if (candidate.year == y && candidate.month == m && candidate.day == d) {
+          return candidate;
+        }
+      } catch (_) {}
+      return null;
+    }
+
+    // Abre um dialog customizado que mantém o visual do calendário Material
+    await showDialog(
       context: context,
-      initialDate: widget.selectedDate ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(Duration(days: 365)),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: ColorScheme.dark(
-              primary: Colors.orange,
-              onPrimary: Colors.white,
-              surface: Color(0xFF111111),
-              onSurface: Colors.white,
-            ),
-            dialogBackgroundColor: Color(0xFF111111),
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(foregroundColor: Colors.orange),
-            ),
-          ),
-          child: child!,
+      barrierDismissible: true,
+      builder: (context) {
+        // StatefulBuilder permite setState local para atualizar o calendário e campo
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: const Color(0xFF111111),
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 24,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 460),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // CABEÇALHO CUSTOM com campo mascarado que você pediu
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: controller,
+                              inputFormatters: [
+                                DateMaskFormatter(),
+                              ], // <- SUA MÁSCARA
+                              keyboardType: TextInputType.number,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: const Color(0xFF1A1A1A),
+                                hintText: 'DD/MM/YYYY',
+                                hintStyle: const TextStyle(
+                                  color: Colors.white54,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              onChanged: (value) {
+                                // se o usuario digitar uma data valida, atualiza tempDate e o calendario
+                                final pd = parseMaskedDate(value);
+                                if (pd != null) {
+                                  tempDate = pd;
+                                  // força rebuild do CalendarDatePicker via setState
+                                  setState(() {});
+                                }
+                              },
+                              onTap: () {
+                                // opcional: fechar teclado ao tocar no calendário depois
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          // botão para limpar o campo rapidamente
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[800],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              icon: const Icon(
+                                Icons.close,
+                                size: 18,
+                                color: Colors.white,
+                              ),
+                              onPressed: () {
+                                controller.clear();
+                                tempDate = DateTime.now();
+                                setState(() {}); // atualiza o calendário
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Calendário: usa o mesmo widget do Material, mantendo o formato
+                      // (o CalendarDatePicker reproduz o grid mensal)
+                      CalendarDatePicker(
+                        key: ValueKey(
+                          tempDate.month,
+                        ), // força rebuild de mês quando tempDate muda por digitação
+                        initialDate: tempDate,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                        onDateChanged: (date) {
+                          // quando o usuário escolhe no calendário, sincronizamos o campo
+                          tempDate = date;
+                          final formatted = DateFormat(
+                            "dd/MM/yyyy",
+                          ).format(date);
+                          controller.value = controller.value.copyWith(
+                            text: formatted,
+                            selection: TextSelection.collapsed(
+                              offset: formatted.length,
+                            ),
+                          );
+                          setState(
+                            () {},
+                          ); // atualiza seleção visual do calendario
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Linha de ações (Limpar / Hoje / Confirmar) — estilo condizente com seu app
+                      Row(
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              controller.clear();
+                              widget.onClearFilter();
+                              Navigator.pop(context);
+                            },
+                            child: const Text(
+                              'Limpar',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () {
+                              final today = DateTime.now();
+                              tempDate = DateTime(
+                                today.year,
+                                today.month,
+                                today.day,
+                              );
+                              final formatted = DateFormat(
+                                "dd/MM/yyyy",
+                              ).format(tempDate);
+                              controller.value = controller.value.copyWith(
+                                text: formatted,
+                                selection: TextSelection.collapsed(
+                                  offset: formatted.length,
+                                ),
+                              );
+                              setState(() {});
+                            },
+                            child: const Text(
+                              'Hoje',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                            ),
+                            onPressed: () {
+                              // preferimos valor digitado se for válido
+                              final fromField = parseMaskedDate(
+                                controller.text,
+                              );
+                              final result = fromField ?? tempDate;
+                              widget.onDateSelected(
+                                DateTime(result.year, result.month, result.day),
+                              );
+                              Navigator.pop(context);
+                            },
+                            child: const Text(
+                              'Confirmar',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );
-
-    if (picked != null) {
-      widget.onDateSelected(DateTime(picked.year, picked.month, picked.day));
-    }
   }
 
   @override

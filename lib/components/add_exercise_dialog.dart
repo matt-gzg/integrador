@@ -154,10 +154,7 @@ class AddExerciseDialog {
           labelText: label,
           labelStyle: TextStyle(color: Colors.grey[400]),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
       ),
     );
@@ -186,24 +183,15 @@ class AddExerciseDialog {
         items: const [
           DropdownMenuItem(
             value: "baixa",
-            child: Text(
-              "Baixa",
-              style: TextStyle(color: Colors.white),
-            ),
+            child: Text("Baixa", style: TextStyle(color: Colors.white)),
           ),
           DropdownMenuItem(
             value: "media",
-            child: Text(
-              "Média",
-              style: TextStyle(color: Colors.white),
-            ),
+            child: Text("Média", style: TextStyle(color: Colors.white)),
           ),
           DropdownMenuItem(
             value: "alta",
-            child: Text(
-              "Alta",
-              style: TextStyle(color: Colors.white),
-            ),
+            child: Text("Alta", style: TextStyle(color: Colors.white)),
           ),
         ],
         onChanged: onChanged,
@@ -275,8 +263,7 @@ class AddExerciseDialog {
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
                   : Text(
