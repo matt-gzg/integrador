@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:integrador/view/auth_page.dart';
 
 class ProfilePage extends StatefulWidget {
   final AppUser user;
@@ -291,7 +292,62 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void logout() async {
-    await FirebaseAuth.instance.signOut();
-    Navigator.pop(context);
+    // Mostrar diálogo de confirmação
+    bool confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Color(0xFF111111),
+        title: Text("Sair da conta", style: TextStyle(color: Colors.white)),
+        content: Text(
+          "Tem certeza que deseja sair?",
+          style: TextStyle(color: Colors.grey[400]),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text("Cancelar", style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text("Sair", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    // Mostrar indicador de carregamento
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) =>
+          Center(child: CircularProgressIndicator(color: Colors.orange)),
+    );
+
+    try {
+      await FirebaseAuth.instance.signOut();
+
+      // Fechar o loading
+      Navigator.pop(context);
+
+      // IMPORTANTE: Navegar para AuthPage (que automaticamente mostrará LoginPage)
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => AuthPage()),
+        (route) => false,
+      );
+    } catch (e) {
+      // Fechar o loading se houver erro
+      if (Navigator.canPop(context)) Navigator.pop(context);
+
+      // Mostrar erro
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Erro ao fazer logout: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

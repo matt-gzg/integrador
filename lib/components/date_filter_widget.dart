@@ -268,7 +268,6 @@ class _DateFilterWidgetState extends State<DateFilterWidget> {
 
                       const SizedBox(height: 12),
 
-                      // Linha de ações (Limpar / Hoje / Confirmar) — estilo condizente com seu app
                       Row(
                         children: [
                           TextButton(
