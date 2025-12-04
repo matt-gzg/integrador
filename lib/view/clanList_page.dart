@@ -38,22 +38,15 @@ class ClanListPage extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => CreateClanPage(user: user),
-            ),
+            MaterialPageRoute(builder: (_) => CreateClanPage(user: user)),
           );
         },
         backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
         elevation: 8,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         icon: Icon(Icons.add_rounded),
-        label: Text(
-          "Criar Clã",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        label: Text("Criar Clã", style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: Column(
         children: [
@@ -103,10 +96,7 @@ class ClanListPage extends StatelessWidget {
                       SizedBox(height: 4),
                       Text(
                         "Entre em uma comunidade de competidores e desafie outros clãs!",
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 14,
-                        ),
+                        style: TextStyle(color: Colors.grey[400], fontSize: 14),
                       ),
                     ],
                   ),
@@ -127,10 +117,7 @@ class ClanListPage extends StatelessWidget {
                   final count = snapshot.hasData ? snapshot.data!.length : 0;
                   return Text(
                     "$count clã${count != 1 ? 's' : ''} disponível${count != 1 ? 's' : ''}",
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.grey[500], fontSize: 14),
                   );
                 },
               ),
@@ -153,7 +140,9 @@ class ClanListPage extends StatelessWidget {
                           height: 40,
                           child: CircularProgressIndicator(
                             strokeWidth: 3,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.orange,
+                            ),
                           ),
                         ),
                         SizedBox(height: 16),
@@ -311,16 +300,22 @@ class ClanListPage extends StatelessWidget {
                                 // Informações do clã
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Row(
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Text(
-                                            clan.name,
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
+                                          Flexible(
+                                            child: Text(
+                                              clan.name,
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
                                           if (isLeader) ...[
@@ -331,7 +326,8 @@ class ClanListPage extends StatelessWidget {
                                                 vertical: 2,
                                               ),
                                               decoration: BoxDecoration(
-                                                color: Colors.orange.withOpacity(0.2),
+                                                color: Colors.orange
+                                                    .withOpacity(0.2),
                                                 borderRadius:
                                                     BorderRadius.circular(6),
                                               ),
@@ -397,15 +393,10 @@ class ClanListPage extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Color(0xFF111111),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           "Entrar no Clã",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -446,10 +437,7 @@ class ClanListPage extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(
-              "Cancelar",
-              style: TextStyle(color: Colors.grey),
-            ),
+            child: Text("Cancelar", style: TextStyle(color: Colors.grey)),
           ),
           Container(
             decoration: BoxDecoration(
@@ -504,10 +492,7 @@ class ClanListPage extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 16),
-              Text(
-                "Entrando no clã...",
-                style: TextStyle(color: Colors.white),
-              ),
+              Text("Entrando no clã...", style: TextStyle(color: Colors.white)),
             ],
           ),
         ),
@@ -516,11 +501,7 @@ class ClanListPage extends StatelessWidget {
 
     try {
       // 1 — adiciona como membro
-      await ClanService().joinClan(
-        clan.id,
-        user.id!,
-        user.name,
-      );
+      await ClanService().joinClan(clan.id, user.id!, user.name);
 
       // 2 — atualiza o usuário com o clanId
       final updatedUser = user.copyWith(clanId: clan.id);
