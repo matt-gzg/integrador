@@ -30,28 +30,27 @@ class ClanService {
             .toList());
   }
 
-  Stream<List<Exercise>> getClanActivities(String clanId) {
+  Stream<List<Exercise>> getClanExercises(String clanId) {
     return _db
         .collection("clans")
         .doc(clanId)
-        .collection("activities")
+        .collection("exerciseLogs")
         .orderBy("timestamp", descending: true)
         .snapshots()
         .map((snap) =>
             snap.docs.map((d) => Exercise.fromFirestore(d.data(), d.id)).toList());
   }
 
-  Stream<List<Exercise>> getRecentClanActivities(String clanId) {
+  Stream<List<Exercise>> getRecentClanExercises(String clanId) {
     return _db
         .collection("clans")
         .doc(clanId)
-        .collection("activities")
+        .collection("exerciseLogs")
         .orderBy("timestamp", descending: true)
         .limit(5)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => Exercise.fromFirestore(d.data(), d.id))
-            .toList());
+        .map((snap) =>
+            snap.docs.map((d) => Exercise.fromFirestore(d.data(), d.id)).toList());
   }
 
   Stream<List<Clan>> getAllClans() {
@@ -62,6 +61,41 @@ class ClanService {
         .map((snap) =>
             snap.docs.map((d) => Clan.fromFirestore(d.id, d.data())).toList());
   }
+
+  Future<void> addExerciseToClan({
+    required String clanId,
+    required Exercise exercise,
+  }) async {
+    final ref = _db
+        .collection("clans")
+        .doc(clanId)
+        .collection("exerciseLogs")
+        .doc();
+
+    await ref.set(exercise.toFirestore());
+  }
+
+  Future<void> applyExercisePoints({
+    required String clanId,
+    required String userId,
+    required int points,
+  }) async {
+    final clanRef = _db.collection("clans").doc(clanId);
+    final memberRef = clanRef.collection("members").doc(userId);
+
+    await _db.runTransaction((t) async {
+      // atualizar pontos do membro
+      final m = await t.get(memberRef);
+      int mp = m.data()?["points"] ?? 0;
+      t.update(memberRef, { "points": mp + points });
+
+      // atualizar pontos do clã
+      final c = await t.get(clanRef);
+      int cp = c.data()?["points"] ?? 0;
+      t.update(clanRef, { "points": cp + points });
+    });
+  }
+
 
   // -----------------------------------------------------------
   // CRIAÇÃO E ENTRADA EM CLÃ
