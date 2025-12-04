@@ -15,7 +15,6 @@ void main() async {
       debugShowCheckedModeBanner: false,
       home: LoginPage(),
 
-      // 🔥 Necessário para funcionar os GlobalMaterialLocalizations
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -23,7 +22,7 @@ void main() async {
       ],
 
       supportedLocales: const [
-        Locale('pt', 'BR'), // idioma principal do app
+        Locale('pt', 'BR'),
       ],
 
       locale: const Locale('pt', 'BR'),
