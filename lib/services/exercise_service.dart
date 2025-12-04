@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:integrador/model/exerciseLog_model.dart';
+import 'package:integrador/model/exercise_model.dart';
 
-class ExerciseLogService {
+class ExerciseService {
   final String clanId;
 
-  ExerciseLogService(this.clanId);
+  ExerciseService(this.clanId);
 
   CollectionReference get logsRef => FirebaseFirestore.instance
       .collection("clans")
@@ -84,7 +84,7 @@ class ExerciseLogService {
   }
 
   // Buscar logs do usuário
-  Stream<List<ExerciseLog>> getUserLogs(String userId) {
+  Stream<List<Exercise>> getUserLogs(String userId) {
     return logsRef
         .where('userId', isEqualTo: userId)
         .orderBy('timestamp', descending: true)
@@ -92,7 +92,7 @@ class ExerciseLogService {
         .map(
           (snap) => snap.docs
               .map(
-                (d) => ExerciseLog.fromFirestore(
+                (d) => Exercise.fromFirestore(
                   d.data() as Map<String, dynamic>,
                   d.id,
                 ),

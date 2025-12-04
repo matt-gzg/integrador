@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:integrador/services/exerciseLog_service.dart';
+import 'package:integrador/services/exercise_service.dart';
 
 class ExerciseOptionsDialog {
   static void show({
     required BuildContext context,
     required dynamic log,
-    required ExerciseLogService logService,
+    required ExerciseService logService,
     required VoidCallback onEdit,
     required VoidCallback onDelete,
   }) {

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:integrador/services/exerciseLog_service.dart';
+import 'package:integrador/services/exercise_service.dart';
 
 class DeleteConfirmationDialog {
   static void show({
     required BuildContext context,
-    required ExerciseLogService logService,
+    required ExerciseService logService,
     required dynamic log,
   }) {
     showDialog(
