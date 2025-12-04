@@ -139,7 +139,6 @@ class _DateFilterWidgetState extends State<DateFilterWidget> {
       context: context,
       barrierDismissible: true,
       builder: (context) {
-        // StatefulBuilder permite setState local para atualizar o calendário e campo
         return StatefulBuilder(
           builder: (context, setState) {
             return Dialog(
@@ -158,15 +157,12 @@ class _DateFilterWidgetState extends State<DateFilterWidget> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // CABEÇALHO CUSTOM com campo mascarado que você pediu
                       Row(
                         children: [
                           Expanded(
                             child: TextField(
                               controller: controller,
-                              inputFormatters: [
-                                DateMaskFormatter(),
-                              ], // <- SUA MÁSCARA
+                              inputFormatters: [DateMaskFormatter()],
                               keyboardType: TextInputType.number,
                               style: const TextStyle(
                                 color: Colors.white,
@@ -189,26 +185,20 @@ class _DateFilterWidgetState extends State<DateFilterWidget> {
                                 ),
                               ),
                               onChanged: (value) {
-                                // se o usuario digitar uma data valida, atualiza tempDate e o calendario
                                 final pd = parseMaskedDate(value);
                                 if (pd != null) {
                                   tempDate = pd;
-                                  // força rebuild do CalendarDatePicker via setState
                                   setState(() {});
                                 }
-                              },
-                              onTap: () {
-                                // opcional: fechar teclado ao tocar no calendário depois
                               },
                             ),
                           ),
                           const SizedBox(width: 8),
-                          // botão para limpar o campo rapidamente
                           Container(
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: Colors.grey[800],
+                              color: const Color.fromARGB(255, 173, 71, 71),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: IconButton(
@@ -221,7 +211,8 @@ class _DateFilterWidgetState extends State<DateFilterWidget> {
                               onPressed: () {
                                 controller.clear();
                                 tempDate = DateTime.now();
-                                setState(() {}); // atualiza o calendário
+                                setState(() {});
+                                Navigator.pop(context);
                               },
                             ),
                           ),
@@ -230,31 +221,49 @@ class _DateFilterWidgetState extends State<DateFilterWidget> {
 
                       const SizedBox(height: 12),
 
-                      // Calendário: usa o mesmo widget do Material, mantendo o formato
-                      // (o CalendarDatePicker reproduz o grid mensal)
-                      CalendarDatePicker(
-                        key: ValueKey(
-                          tempDate.month,
-                        ), // força rebuild de mês quando tempDate muda por digitação
-                        initialDate: tempDate,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                        onDateChanged: (date) {
-                          // quando o usuário escolhe no calendário, sincronizamos o campo
-                          tempDate = date;
-                          final formatted = DateFormat(
-                            "dd/MM/yyyy",
-                          ).format(date);
-                          controller.value = controller.value.copyWith(
-                            text: formatted,
-                            selection: TextSelection.collapsed(
-                              offset: formatted.length,
-                            ),
-                          );
-                          setState(
-                            () {},
-                          ); // atualiza seleção visual do calendario
-                        },
+                      Theme(
+                        data: Theme.of(context).copyWith(
+                          textTheme: const TextTheme(
+                            // Dias normais do calendário
+                            bodyMedium: TextStyle(color: Colors.white),
+
+                            // Também muda dias fora do mês caso queira
+                            bodySmall: TextStyle(color: Colors.white70),
+                          ),
+                          colorScheme: ColorScheme.dark(
+                            primary: Colors.orange, // Cor do dia selecionado
+                            onPrimary: Colors
+                                .black, // Cor do texto quando o dia está selecionado
+                            surface: const Color(
+                              0xFF111111,
+                            ), // Fundo do calendário
+                          ),
+                        ),
+                        child: CalendarDatePicker(
+                          key: ValueKey(
+                            tempDate.month,
+                          ), // mantém o seu rebuild do mês
+                          initialDate: tempDate,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime.now().add(
+                            const Duration(days: 365),
+                          ),
+                          onDateChanged: (date) {
+                            tempDate = date;
+                            final formatted = DateFormat(
+                              "dd/MM/yyyy",
+                            ).format(date);
+
+                            controller.value = controller.value.copyWith(
+                              text: formatted,
+                              selection: TextSelection.collapsed(
+                                offset: formatted.length,
+                              ),
+                            );
+
+                            setState(() {});
+                          },
+                        ),
                       ),
 
                       const SizedBox(height: 12),
@@ -417,7 +426,7 @@ class _DateFilterWidgetState extends State<DateFilterWidget> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                SizedBox(height: 8,),
+                SizedBox(height: 8),
                 Row(
                   children: [
                     _buildIconButton(
