@@ -1,134 +1,212 @@
 import 'package:flutter/material.dart';
 import 'package:integrador/model/appUser_model.dart';
 import 'package:integrador/services/exerciseLog_service.dart';
+import 'package:integrador/components/date_filter_widget.dart';
+import 'package:integrador/components/log_card_widget.dart';
+import 'package:integrador/components/log_skeleton_widget.dart';
+import 'package:integrador/components/add_exercise_dialog.dart';
+import 'package:integrador/components/edit_exercise_dialog.dart';
+import 'package:integrador/components/delete_confirmation_dialog.dart';
+import 'package:integrador/components/exercise_options_dialog.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
-class ExerciseLogPage extends StatelessWidget {
+class ExerciseLogPage extends StatefulWidget {
   final AppUser user;
 
   const ExerciseLogPage({super.key, required this.user});
 
   @override
+  State<ExerciseLogPage> createState() => _ExerciseLogPageState();
+}
+
+class _ExerciseLogPageState extends State<ExerciseLogPage> {
+  DateTime? _selectedDate;
+  late ExerciseLogService logService;
+  late Stream<List<dynamic>> logStream;
+
+  @override
+  void initState() {
+    super.initState();
+    logService = ExerciseLogService(widget.user.clanId!);
+    logStream = logService.getUserLogs(widget.user.id!);
+  }
+
+  void _setSelectedDate(DateTime? date) {
+    setState(() {
+      _selectedDate = date;
+    });
+  }
+
+  List<dynamic> _filterLogsByDate(List<dynamic> allLogs) {
+    if (_selectedDate == null) {
+      return allLogs;
+    }
+    
+    return allLogs.where((log) {
+      try {
+        DateTime logDate;
+        if (log.timestamp is String) {
+          logDate = DateTime.parse(log.timestamp);
+        } else if (log.timestamp is Timestamp) {
+          logDate = (log.timestamp as Timestamp).toDate();
+        } else if (log.timestamp is DateTime) {
+          logDate = log.timestamp;
+        } else {
+          return false;
+        }
+
+        return logDate.year == _selectedDate!.year &&
+            logDate.month == _selectedDate!.month &&
+            logDate.day == _selectedDate!.day;
+      } catch (e) {
+        return false;
+      }
+    }).toList();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final logService = ExerciseLogService(user.clanId!);
-    final logStream = logService.getUserLogs(user.id!);
-
     return Scaffold(
+      backgroundColor: Color(0xFF0A0A0A),
       appBar: AppBar(
-        title: const Text("Log de Exercícios"),
-        backgroundColor: Colors.deepPurple,
+        title: Text(
+          "Exercícios",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
+        ),
+        backgroundColor: Color(0xFF111111),
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.orange),
+        centerTitle: true,
       ),
 
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.deepPurple,
-        child: const Icon(Icons.add),
-        onPressed: () => _openAddExerciseDialog(context, logService),
+      floatingActionButton: Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.orange.shade600, Colors.orange.shade800],
+          ),
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.orange.withOpacity(0.3),
+              blurRadius: 15,
+              offset: Offset(0, 5),
+            ),
+          ],
+        ),
+        child: FloatingActionButton(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Icon(Icons.add, color: Colors.white, size: 28),
+          onPressed: () => AddExerciseDialog.show(
+            context: context,
+            logService: logService,
+            user: widget.user,
+          ),
+        ),
       ),
 
-      body: StreamBuilder(
-        stream: logStream,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Column(
+        children: [
+          DateFilterWidget(
+            selectedDate: _selectedDate,
+            onDateSelected: _setSelectedDate,
+            onClearFilter: () => _setSelectedDate(null),
+          ),
 
-          final logs = snapshot.data!;
-          if (logs.isEmpty) {
-            return const Center(child: Text("Nenhuma atividade registrada."));
-          }
+          Expanded(
+            child: StreamBuilder(
+              stream: logStream,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return LogSkeletonWidget();
+                }
 
-          return ListView.builder(
-            itemCount: logs.length,
-            itemBuilder: (context, index) {
-              final log = logs[index];
+                final allLogs = snapshot.data!;
+                final filteredLogs = _filterLogsByDate(allLogs);
 
-              return Card(
-                margin: const EdgeInsets.all(8),
-                child: ListTile(
-                  title: Text(log.activityName),
-                  subtitle: Text(
-                    "${log.intensity.toUpperCase()} • ${log.duration} min\n"
-                    "Registrado em ${log.timestamp}",
-                  ),
-                  trailing: Text(
-                    "+${log.points}",
-                    style: const TextStyle(
-                      color: Colors.deepPurple,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
-              );
-            },
-          );
-        },
+                if (filteredLogs.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                return ListView.builder(
+                  padding: EdgeInsets.all(16),
+                  itemCount: filteredLogs.length,
+                  itemBuilder: (context, index) {
+                    final log = filteredLogs[index];
+                    return LogCardWidget(
+                      log: log,
+                      onTap: () => ExerciseOptionsDialog.show(
+                        context: context,
+                        log: log,
+                        logService: logService,
+                        onEdit: () => EditExerciseDialog.show(
+                          context: context,
+                          logService: logService,
+                          log: log,
+                        ),
+                        onDelete: () => DeleteConfirmationDialog.show(
+                          context: context,
+                          logService: logService,
+                          log: log,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // Modal para registrar atividade
-  void _openAddExerciseDialog(BuildContext context, ExerciseLogService logService) {
-    final activityController = TextEditingController();
-    final durationController = TextEditingController();
-
-    String selectedIntensity = "baixa"; // valor padrão
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Registrar Exercício"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: activityController,
-              decoration: const InputDecoration(labelText: "Nome da atividade"),
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.grey[800]!.withOpacity(0.3),
+              shape: BoxShape.circle,
             ),
-
-            const SizedBox(height: 12),
-
-            DropdownButtonFormField<String>(
-              initialValue: selectedIntensity,
-              decoration: const InputDecoration(labelText: "Intensidade"),
-              items: const [
-                DropdownMenuItem(value: "baixa", child: Text("Baixa")),
-                DropdownMenuItem(value: "media", child: Text("Média")),
-                DropdownMenuItem(value: "alta", child: Text("Alta")),
-              ],
-              onChanged: (value) {
-                selectedIntensity = value!;
-              },
+            child: Icon(
+              Icons.fitness_center_rounded,
+              color: Colors.grey[600],
+              size: 40,
             ),
-
-            const SizedBox(height: 12),
-
-            TextField(
-              controller: durationController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: "Duração (minutos)"),
-            ),
-          ],
-        ),
-
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancelar"),
           ),
-
-          ElevatedButton(
-            onPressed: () async {
-              await logService.addExerciseLog(
-                userId: user.id!,
-                userName: user.name,
-                activityName: activityController.text,
-                intensity: selectedIntensity,
-                duration: int.tryParse(durationController.text) ?? 0,
-              );
-
-              Navigator.pop(context);
-            },
-            child: const Text("Salvar"),
+          SizedBox(height: 20),
+          Text(
+            _selectedDate == null
+                ? "Nenhuma atividade registrada"
+                : _selectedDate!.day == DateTime.now().day &&
+                        _selectedDate!.month == DateTime.now().month &&
+                        _selectedDate!.year == DateTime.now().year
+                    ? "Nenhuma atividade registrada hoje"
+                    : "Nenhuma atividade registrada em ${DateFormat('dd/MM/yyyy').format(_selectedDate!)}",
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontSize: 16,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            "Clique no + para adicionar um exercício",
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12,
+            ),
           ),
         ],
       ),
