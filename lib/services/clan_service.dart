@@ -175,4 +175,24 @@ class ClanService {
         .map((snap) =>
             snap.docs.map((d) => Clan.fromFirestore(d.id, d.data())).toList());
   }
+
+  Future<void> deleteClan(String clanId) async {
+    final clanRef = FirebaseFirestore.instance.collection("clans").doc(clanId);
+
+    // Apagar members
+    final membersSnap = await clanRef.collection("members").get();
+    for (var doc in membersSnap.docs) {
+      await doc.reference.delete();
+    }
+
+    // Apagar activities
+    final activitiesSnap = await clanRef.collection("activities").get();
+    for (var doc in activitiesSnap.docs) {
+      await doc.reference.delete();
+    }
+
+    // Apagar documento do clã
+    await clanRef.delete();
+  }
+
 }
