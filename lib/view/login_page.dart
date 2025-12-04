@@ -28,7 +28,6 @@ class _LoginPageState extends State<LoginPage> {
             children: <Widget>[
               SizedBox(height: 40),
 
-              // Logo/Ícone
               Container(
                 height: 140,
                 width: 140,
@@ -289,7 +288,7 @@ class _LoginPageState extends State<LoginPage> {
             onPressed: () async {
               final email = controller.text.trim();
 
-              Navigator.pop(context); // fecha o popup
+              Navigator.pop(context);
 
               if (email.isEmpty) {
                 if (!mounted) return;
@@ -305,7 +304,9 @@ class _LoginPageState extends State<LoginPage> {
               }
 
               try {
-                await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+                await FirebaseAuth.instance.sendPasswordResetEmail(
+                  email: email,
+                );
 
                 if (!mounted) return;
                 showDialog(
@@ -317,7 +318,6 @@ class _LoginPageState extends State<LoginPage> {
                     icon: Icons.check_circle_outline,
                   ),
                 );
-
               } catch (e) {
                 if (!mounted) return;
                 showDialog(
@@ -337,7 +337,6 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-
 
   void resetPassword() async {
     final email = emailController.text.trim();
@@ -381,7 +380,6 @@ class _LoginPageState extends State<LoginPage> {
   void signUserIn() async {
     final auth = AuthService();
 
-    // Mostrar loading elegante
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -426,14 +424,10 @@ class _LoginPageState extends State<LoginPage> {
         email: emailController.text,
         password: passwordController.text,
       );
-      print("USER LOGADO = ${FirebaseAuth.instance.currentUser}");
-      Navigator.of(context, rootNavigator: true).pop(context);
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => JoinAppPage()),
-      );
+
+      if (Navigator.canPop(context)) Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
-      Navigator.pop(context);
+      if (Navigator.canPop(context)) Navigator.pop(context);
       switch (e.code) {
         case 'invalid-credential':
         case 'wrong-password':
