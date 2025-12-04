@@ -9,6 +9,7 @@ class AppUser {
   int level;
   DateTime createdAt;
   String? photoUrl;
+  bool isAdmin;
 
   AppUser({
     this.id,
@@ -19,6 +20,7 @@ class AppUser {
     this.level = 1,
     required this.createdAt,
     this.photoUrl,
+    this.isAdmin = false,
   });
 
   AppUser copyWith({
@@ -30,6 +32,7 @@ class AppUser {
     int? level,
     DateTime? createdAt,
     String? photoUrl,
+    bool? isAdmin,
   }) {
     return AppUser(
       id: id ?? this.id,
@@ -40,13 +43,11 @@ class AppUser {
       level: level ?? this.level,
       createdAt: createdAt ?? this.createdAt,
       photoUrl: photoUrl ?? this.photoUrl,
+      isAdmin: isAdmin ?? this.isAdmin,
     );
   }
-  
-  factory AppUser.fromFirestore(
-    Map<String, dynamic> json,
-    String documentId,
-  ) {
+
+  factory AppUser.fromFirestore(Map<String, dynamic> json, String documentId) {
     return AppUser(
       id: documentId,
       clanId: json['clanId'],
@@ -58,6 +59,7 @@ class AppUser {
           ? (json['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
       photoUrl: json['photoUrl'],
+      isAdmin: json['isAdmin'] ?? false,
     );
   }
 
@@ -70,6 +72,7 @@ class AppUser {
       'level': level,
       'createdAt': createdAt,
       'photoUrl': photoUrl,
+      'isAdmin': isAdmin,
     };
   }
 }
