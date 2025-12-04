@@ -137,4 +137,36 @@
         });
       });
     }
+
+    Future<void> updateMemberName(String clanId, String userId, String newName) async {
+      await FirebaseFirestore.instance
+          .collection("clans")
+          .doc(clanId)
+          .collection("members")
+          .doc(userId)
+          .update({
+            "name": newName,
+          });
+    }
+
+    Future<void> leaveClan({
+      required String clanId,
+      required String userId,
+    }) async {
+      final clanRef = FirebaseFirestore.instance.collection("clans").doc(clanId);
+      final userRef = FirebaseFirestore.instance.collection("users").doc(userId);
+
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        // Remover o membro da subcoleção do clã
+        transaction.delete(clanRef.collection("members").doc(userId));
+
+        // Remover o clanId do usuário
+        transaction.update(userRef, {
+          "clanId": "",
+        });
+      });
+    }
+
+
+
   }
