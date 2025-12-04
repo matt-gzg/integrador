@@ -65,7 +65,6 @@ class EditExerciseDialog {
               return _showError(context, "O máximo permitido é 300 minutos.");
             }
 
-            // Se estiver tudo certo, continua:
             setState(() => isLoading = true);
             try {
               await logService.updateExerciseLog(

@@ -69,8 +69,6 @@ class ShowAlert extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 24),
-              
-              // Título
               Text(
                 title,
                 style: TextStyle(
@@ -82,8 +80,6 @@ class ShowAlert extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 16),
-              
-              // Mensagem
               Text(
                 message,
                 style: TextStyle(
@@ -94,8 +90,6 @@ class ShowAlert extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 32),
-              
-              // Botão OK
               Container(
                 width: double.infinity,
                 height: 52,

@@ -2,15 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:integrador/model/clan_model.dart';
 import 'package:integrador/model/clanMember_model.dart';
 import 'package:integrador/model/exercise_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ClanService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  // -----------------------------------------------------------
-  // STREAMS
-  // -----------------------------------------------------------
 
   Stream<Clan> getClan(String clanId) {
     return _db
@@ -96,23 +91,16 @@ class ClanService {
     final memberRef = clanRef.collection("members").doc(userId);
 
     await _db.runTransaction((t) async {
-      // atualizar pontos do membro
       final m = await t.get(memberRef);
       int mp = m.data()?["points"] ?? 0;
       t.update(memberRef, {"points": mp + points});
 
-      // atualizar pontos do clã
       final c = await t.get(clanRef);
       int cp = c.data()?["points"] ?? 0;
       t.update(clanRef, {"points": cp + points});
     });
   }
 
-  // -----------------------------------------------------------
-  // CRIAÇÃO E ENTRADA EM CLÃ
-  // -----------------------------------------------------------
-
-  /// Método para criar um novo clã + salvar líder como membro.
   Future<String> createClan({
     required Clan clan,
     required String leaderId,
@@ -128,7 +116,6 @@ class ClanService {
 
     await clanRef.set(data);
 
-    // adiciona o líder como membro inicial
     await clanRef.collection("members").doc(leaderId).set({
       "name": leaderName,
       "points": 0,
@@ -137,7 +124,6 @@ class ClanService {
     return clanRef.id;
   }
 
-  /// Adiciona membro normal ao clã
   Future<void> joinClan(String clanId, String userId, String userName) async {
     final memberRef = _db
         .collection("clans")
@@ -153,10 +139,6 @@ class ClanService {
     print("Usuário $userName entrou no clã $clanId");
   }
 
-  // -----------------------------------------------------------
-  // REGISTRO DE ATIVIDADE
-  // -----------------------------------------------------------
-
   Future<void> registerClanActivity({
     required String clanId,
     required String userId,
@@ -169,7 +151,6 @@ class ClanService {
     final activitiesRef = clanRef.collection("activities");
 
     await _db.runTransaction((transaction) async {
-      // 1. Registrar atividade
       transaction.set(activitiesRef.doc(), {
         "userId": userId,
         "userName": userName,
@@ -178,13 +159,11 @@ class ClanService {
         "timestamp": Timestamp.now(),
       });
 
-      // 2. Atualizar pontos do membro
       final memberSnap = await transaction.get(memberRef);
       final currentMemberPoints = memberSnap.data()?["points"] ?? 0;
 
       transaction.update(memberRef, {"points": currentMemberPoints + points});
 
-      // 3. Atualizar pontos do clã
       final clanSnap = await transaction.get(clanRef);
       final currentClanPoints = clanSnap.data()?["points"] ?? 0;
 
@@ -215,33 +194,19 @@ class ClanService {
     final userRef = _firestore.collection('users').doc(memberId);
 
     await _firestore.runTransaction((transaction) async {
-      // ---------------------------
-      // 1. LEITURAS (obrigatório!)
-      // ---------------------------
-
-      // get #1 - dados do clan
       final clanSnap = await transaction.get(clanRef);
       if (!clanSnap.exists) throw Exception('Clã não encontrado.');
 
       if (clanSnap.data()?['leaderId'] != leaderId)
         throw Exception('Apenas o líder pode remover membros.');
 
-      // get #2 - dados do membro
       final memberSnap = await transaction.get(memberRef);
       final memberPoints = memberSnap.data()?['points'] ?? 0;
-
-      // get #3 - dados do usuário (necessário!!!)
       final userSnap = await transaction.get(userRef);
       if (!userSnap.exists) throw Exception('Usuário não encontrado.');
 
-      // ---------------------------
-      // 2. WRITES (depois de tudo!)
-      // ---------------------------
-
-      // Remover membro da coleção
       transaction.delete(memberRef);
 
-      // Atualizar pontos do clã
       final currentClanPoints = clanSnap.data()?['points'] ?? 0;
       final newClanPoints = (currentClanPoints - memberPoints)
           .clamp(0, double.infinity)
@@ -249,7 +214,6 @@ class ClanService {
 
       transaction.update(clanRef, {'points': newClanPoints});
 
-      // Remover clanId do usuário
       transaction.update(userRef, {'clanId': ''});
     });
   }
@@ -262,10 +226,8 @@ class ClanService {
     final userRef = FirebaseFirestore.instance.collection("users").doc(userId);
 
     await FirebaseFirestore.instance.runTransaction((transaction) async {
-      // Remover o membro da subcoleção do clã
       transaction.delete(clanRef.collection("members").doc(userId));
 
-      // Remover o clanId do usuário
       transaction.update(userRef, {"clanId": ""});
     });
   }
@@ -285,32 +247,26 @@ class ClanService {
     final clanRef = FirebaseFirestore.instance.collection("clans").doc(clanId);
     final batch = FirebaseFirestore.instance.batch();
 
-    // Apagar members
     final membersSnap = await clanRef.collection("members").get();
     for (var doc in membersSnap.docs) {
       batch.delete(doc.reference);
     }
 
-    // Apagar activities
     final activitiesSnap = await clanRef.collection("activities").get();
     for (var doc in activitiesSnap.docs) {
       batch.delete(doc.reference);
     }
 
-    // Apagar exerciseLogs
     final exerciseLogsSnap = await clanRef.collection("exerciseLogs").get();
     for (var doc in exerciseLogsSnap.docs) {
       batch.delete(doc.reference);
     }
 
-    // Apagar documento do clã
     batch.delete(clanRef);
 
-    // Executar tudo em uma única operação
     await batch.commit();
   }
 
-  /// Se o usuário for o líder, deleta o clã; caso contrário, apenas sai
   Future<void> leaderLeaveClan({
     required String clanId,
     required String userId,
@@ -319,28 +275,17 @@ class ClanService {
     final clanRef = FirebaseFirestore.instance.collection("clans").doc(clanId);
     final usersCollection = FirebaseFirestore.instance.collection("users");
 
-    // Verifica se o usuário é o líder
     final clanSnap = await clanRef.get();
     if (clanSnap.data()?['leaderId'] == leaderId) {
-      // Líder saindo: remover todos os membros primeiro, depois deletar o clã
-
-      // 1. Pegar todos os membros
       final membersSnap = await clanRef.collection("members").get();
       final batch = FirebaseFirestore.instance.batch();
-
-      // 2. Remover clanId de todos os membros na coleção 'users'
       for (var memberDoc in membersSnap.docs) {
         final memberId = memberDoc.id;
         batch.update(usersCollection.doc(memberId), {'clanId': ''});
       }
-
-      // Executar updates de usuários
       await batch.commit();
-
-      // 3. Deletar o clã (que também deleta subcoleções)
       await deleteClan(clanId);
     } else {
-      // Membro normal saindo
       await leaveClan(clanId: clanId, userId: userId);
     }
   }

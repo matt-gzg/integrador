@@ -41,7 +41,6 @@ class _ProfilePageState extends State<ProfilePage> {
         padding: EdgeInsets.all(24),
         child: Column(
           children: [
-            // FOTO DE PERFIL -------------------------
             Center(
               child: Stack(
                 children: [
@@ -56,8 +55,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                 as ImageProvider,
                     ),
                   ),
-
-                  // ÍCONE DE EDITAR A FOTO
                   Positioned(
                     bottom: 0,
                     right: 0,
@@ -79,15 +76,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
             SizedBox(height: 30),
 
-            // EMAIL (FIXO)
             Text(
               widget.user.email,
               style: TextStyle(color: Colors.grey[400], fontSize: 15),
             ),
-
             SizedBox(height: 20),
-
-            // EDITAR USERNAME -------------------------
             TextField(
               controller: nameController,
               style: TextStyle(color: Colors.white),
@@ -112,7 +105,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
             SizedBox(height: 30),
 
-            // BOTÃO SALVAR -------------------------
             SizedBox(
               width: double.infinity,
               height: 55,
@@ -137,7 +129,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
             SizedBox(height: 20),
 
-            // BOTÃO LOGOUT -------------------------
             SizedBox(
               width: double.infinity,
               height: 55,
@@ -161,24 +152,18 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // ========================================================
-  // FUNÇÕES A IMPLEMENTAR (FAÇO COMPLETA SE QUISER)
-  // ========================================================
-
   void changeProfilePicture() async {
     final picker = ImagePicker();
 
-    // Abrir galeria
     final pickedFile = await picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 70, // compressão leve
+      imageQuality: 70,
     );
 
-    if (pickedFile == null) return; // usuário cancelou
+    if (pickedFile == null) return;
 
     final File file = File(pickedFile.path);
 
-    // Mostrar loading enquanto envia
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -187,33 +172,25 @@ class _ProfilePageState extends State<ProfilePage> {
     );
 
     try {
-      // Caminho no Storage
       final storageRef = FirebaseStorage.instance
           .ref()
           .child("profile_pictures")
           .child("${widget.user.id}.jpg");
 
-      // Upload do arquivo
       await storageRef.putFile(file);
-
-      // URL final da imagem
       final downloadUrl = await storageRef.getDownloadURL();
-
-      // Atualizar usuário no Firestore
       await FirebaseFirestore.instance
           .collection("users")
           .doc(widget.user.id)
           .update({"photoUrl": downloadUrl});
 
-      // Atualizar displayName/photoURL do FirebaseAuth (opcional)
       await FirebaseAuth.instance.currentUser!.updatePhotoURL(downloadUrl);
 
-      // Atualiza o estado local
       setState(() {
         widget.user.photoUrl = downloadUrl;
       });
 
-      Navigator.pop(context); // fecha o loading
+      Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -223,7 +200,6 @@ class _ProfilePageState extends State<ProfilePage> {
       );
     } catch (e) {
       Navigator.pop(context);
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Erro ao atualizar foto: $e"),
@@ -246,7 +222,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
 
     try {
-      // Atualizar no Firestore
       await FirebaseFirestore.instance
           .collection("users")
           .doc(widget.user.id)
@@ -261,17 +236,14 @@ class _ProfilePageState extends State<ProfilePage> {
             .update({"name": newName});
       }
 
-      // Atualizar displayName do FirebaseAuth
       await FirebaseAuth.instance.currentUser!.updateDisplayName(newName);
-
-      // Atualizar o objeto local
       setState(() {
         widget.user.name = newName;
       });
 
       widget.onUserUpdated(widget.user);
 
-      Navigator.pop(context); // fecha loading
+      Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -292,7 +264,6 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void logout() async {
-    // Mostrar diálogo de confirmação
     bool confirm = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -317,7 +288,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (confirm != true) return;
 
-    // Mostrar indicador de carregamento
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -327,21 +297,15 @@ class _ProfilePageState extends State<ProfilePage> {
 
     try {
       await FirebaseAuth.instance.signOut();
-
-      // Fechar o loading
       Navigator.pop(context);
-
-      // IMPORTANTE: Navegar para AuthPage (que automaticamente mostrará LoginPage)
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => AuthPage()),
         (route) => false,
       );
     } catch (e) {
-      // Fechar o loading se houver erro
       if (Navigator.canPop(context)) Navigator.pop(context);
 
-      // Mostrar erro
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Erro ao fazer logout: $e"),

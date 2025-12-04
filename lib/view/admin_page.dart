@@ -17,21 +17,20 @@ class _AdminPageState extends State<AdminPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
+      backgroundColor: Color(0xFF0A0A0A),
 
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           "Painel do Administrador",
           style: TextStyle(color: Colors.orange, fontSize: 22, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
 
-        // 🔥 BOTÃO DE LOGOUT
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.orange),
+            icon: Icon(Icons.logout, color: Colors.orange),
             onPressed: () async {
               await auth.signOut();
             },
@@ -46,7 +45,7 @@ class _AdminPageState extends State<AdminPage> {
             .snapshots(),
         builder: (context, snap) {
           if (!snap.hasData) {
-            return const Center(
+            return Center(
               child: CircularProgressIndicator(color: Colors.orange),
             );
           }
@@ -54,7 +53,7 @@ class _AdminPageState extends State<AdminPage> {
           final docs = snap.data!.docs;
 
           if (docs.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
                 "Nenhum clã encontrado.",
                 style: TextStyle(color: Colors.white70, fontSize: 16),
@@ -64,29 +63,29 @@ class _AdminPageState extends State<AdminPage> {
 
           return ListView.builder(
             itemCount: docs.length,
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             itemBuilder: (context, index) {
               final clan = docs[index].data() as Map<String, dynamic>;
               final clanId = docs[index].id;
 
               return Container(
-                margin: const EdgeInsets.only(bottom: 14),
+                margin: EdgeInsets.only(bottom: 14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF111111),
+                  color: Color(0xFF111111),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: Colors.grey[800]!),
                 ),
                 child: ListTile(
                   title: Text(
                     clan["name"],
-                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   subtitle: Text(
                     "Pontos: ${clan["points"]}",
                     style: TextStyle(color: Colors.grey[400]),
                   ),
                   trailing: IconButton(
-                    icon: const Icon(Icons.delete_forever, color: Colors.redAccent, size: 30),
+                    icon: Icon(Icons.delete_forever, color: Colors.redAccent, size: 30),
                     onPressed: () => _confirmDelete(context, clanId, clan["name"]),
                   ),
                 ),
@@ -102,27 +101,26 @@ class _AdminPageState extends State<AdminPage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text(
+        backgroundColor: Color(0xFF1A1A1A),
+        title: Text(
           "Deletar clã",
           style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
         ),
         content: Text(
           "Tem certeza que deseja deletar o clã \"$clanName\"?\n"
           "Esta ação é permanente.",
-          style: const TextStyle(color: Colors.white70),
+          style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
-            child: const Text("Cancelar", style: TextStyle(color: Colors.grey)),
+            child: Text("Cancelar", style: TextStyle(color: Colors.grey)),
             onPressed: () => Navigator.pop(context),
           ),
           TextButton(
-            child: const Text("Deletar", style: TextStyle(color: Colors.redAccent)),
+            child: Text("Deletar", style: TextStyle(color: Colors.redAccent)),
             onPressed: () async {
               Navigator.pop(context);
               await clanService.deleteClan(clanId);
-
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text("Clã \"$clanName\" deletado."),

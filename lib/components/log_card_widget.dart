@@ -14,10 +14,8 @@ class LogCardWidget extends StatelessWidget {
 
   String _formatarDataBrasileira(dynamic timestamp) {
     if (timestamp == null) return "Data não disponível";
-
     try {
       DateTime dateTime;
-
       if (timestamp is String) {
         dateTime = DateTime.parse(timestamp);
       } else if (timestamp is Timestamp) {
@@ -27,7 +25,6 @@ class LogCardWidget extends StatelessWidget {
       } else {
         return "Formato inválido";
       }
-
       return DateFormat("dd/MM/yyyy 'às' HH:mm").format(dateTime);
     } catch (e) {
       return "Erro na data";
@@ -38,7 +35,6 @@ class LogCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     Color intensityColor;
     String intensityLabel;
-
     switch (log.intensity.toLowerCase()) {
       case "alta":
         intensityColor = Colors.red.shade400;

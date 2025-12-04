@@ -10,13 +10,13 @@ class RankPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
+      backgroundColor: Color(0xFF0A0A0A),
 
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           "Ranking de Clãs",
           style: TextStyle(
             fontSize: 22,
@@ -30,7 +30,7 @@ class RankPage extends StatelessWidget {
         stream: clanService.getClansRanked(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return const Center(
+            return Center(
               child: CircularProgressIndicator(color: Colors.orange),
             );
           }
@@ -38,7 +38,7 @@ class RankPage extends StatelessWidget {
           final clans = snapshot.data!;
 
           if (clans.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
                 "Nenhum clã encontrado ainda 👀",
                 style: TextStyle(color: Colors.white70, fontSize: 16),
@@ -47,7 +47,7 @@ class RankPage extends StatelessWidget {
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             itemCount: clans.length,
             itemBuilder: (context, index) {
               final Clan clan = clans[index];
@@ -55,55 +55,51 @@ class RankPage extends StatelessWidget {
 
               Icon? medal;
               if (index == 0) {
-                medal = const Icon(
+                medal = Icon(
                   Icons.emoji_events,
                   color: Colors.amber,
                   size: 32,
-                ); // 🥇
+                );
               } else if (index == 1) {
                 medal = const Icon(
                   Icons.emoji_events,
                   color: Colors.grey,
                   size: 30,
-                ); // 🥈
+                );
               } else if (index == 2) {
                 medal = const Icon(
                   Icons.emoji_events,
                   color: Color(0xFFCD7F32),
                   size: 30,
-                ); // 🥉
+                );
               }
-
               return Container(
-                margin: const EdgeInsets.symmetric(vertical: 8),
+                margin: EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF111111),
+                  color: Color(0xFF111111),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.grey[800]!),
                 ),
-
                 child: ListTile(
                   leading: medal ??
                       CircleAvatar(
                         backgroundColor: Colors.orange.withOpacity(0.2),
                         child: Text(
                           position.toString(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.orange,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-
                   title: Text(
                     clan.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-
                   subtitle: Text(
                     "${clan.points} pontos",
                     style: TextStyle(

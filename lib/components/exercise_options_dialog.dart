@@ -39,7 +39,6 @@ class ExerciseOptionsDialog {
                 ),
               ),
               SizedBox(height: 12),
-
               Text(
                 log.activityName,
                 style: TextStyle(
@@ -50,7 +49,6 @@ class ExerciseOptionsDialog {
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 4),
-
               Text(
                 "${log.duration}min • ${log.intensity}",
                 style: TextStyle(color: Colors.grey[400], fontSize: 12),

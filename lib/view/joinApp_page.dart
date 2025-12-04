@@ -16,7 +16,7 @@ class JoinAppPage extends StatelessWidget {
       stream: userStream,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Scaffold(
+          return Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
@@ -35,7 +35,6 @@ class JoinAppPage extends StatelessWidget {
 
 class _ClanChoicePage extends StatelessWidget {
   final AppUser user;
-
   const _ClanChoicePage({required this.user});
 
   @override
@@ -46,7 +45,7 @@ class _ClanChoicePage extends StatelessWidget {
         backgroundColor: Color(0xFF111111),
         elevation: 0,
         title: Text(
-          "Gym Royale",
+          "GymBros",
           style: TextStyle(
             color: Colors.white,
             fontSize: 22,
@@ -65,8 +64,6 @@ class _ClanChoicePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(height: 40),
-
-                // Ícone decorativo
                 Container(
                   width: 160,
                   height: 160,
@@ -89,9 +86,7 @@ class _ClanChoicePage extends StatelessWidget {
                     child: Icon(Icons.group, size: 80, color: Colors.orange),
                   ),
                 ),
-                const SizedBox(height: 30),
-
-                // Título
+                SizedBox(height: 30),
                 Text(
                   "Você ainda não está em um clã!",
                   textAlign: TextAlign.center,
@@ -103,8 +98,6 @@ class _ClanChoicePage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // Descrição
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text(
@@ -118,8 +111,6 @@ class _ClanChoicePage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 50),
-
-                // Botão "Entrar em um Clã"
                 Container(
                   width: double.infinity,
                   height: 58,
@@ -180,10 +171,7 @@ class _ClanChoicePage extends StatelessWidget {
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 20),
-
-                // Botão "Criar um Clã"
+                SizedBox(height: 20),
                 Container(
                   width: double.infinity,
                   height: 58,
@@ -245,10 +233,9 @@ class _ClanChoicePage extends StatelessWidget {
                   ),
                 ),
 
-                // Texto informativo adicional
-                const SizedBox(height: 50),
+                SizedBox(height: 50),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  padding: EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
                     "Ao entrar em um clã, você desbloqueia desafios em grupo, rankings e recompensas exclusivas!",
                     textAlign: TextAlign.center,

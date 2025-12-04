@@ -38,12 +38,9 @@ class AppUserService {
     final uid = FirebaseAuth.instance.currentUser!.uid;
     final db = FirebaseFirestore.instance;
 
-    // 1 — Atualiza nome no documento do usuário
     await db.collection("users").doc(uid).update({
       "name": newName,
     });
-
-    // 2 — Atualiza nome no clã (se estiver em um)
     if (clanId != null && clanId.isNotEmpty) {
       await db
           .collection("clans")

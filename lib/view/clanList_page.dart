@@ -8,7 +8,6 @@ import 'package:integrador/view/home_page.dart';
 
 class ClanListPage extends StatelessWidget {
   final AppUser user;
-
   const ClanListPage({super.key, required this.user});
 
   @override
@@ -98,7 +97,6 @@ class ClanListPage extends StatelessWidget {
           : null,
       body: Column(
         children: [
-          // Cabeçalho informativo
           Container(
             padding: EdgeInsets.all(isTablet ? 24 : 20),
             margin: EdgeInsets.all(isTablet ? 20 : 16),
@@ -156,8 +154,6 @@ class ClanListPage extends StatelessWidget {
             ),
           ),
           SizedBox(height: isTablet ? 12 : 8),
-
-          // Contador de clãs
           Padding(
             padding: EdgeInsets.symmetric(horizontal: isTablet ? 32 : 24),
             child: Align(
@@ -178,8 +174,6 @@ class ClanListPage extends StatelessWidget {
             ),
           ),
           SizedBox(height: isTablet ? 20 : 16),
-
-          // Lista de clãs - Layout responsivo
           Expanded(
             child: StreamBuilder<List<Clan>>(
               stream: ClanService().getAllClans(),
@@ -209,7 +203,6 @@ class ClanListPage extends StatelessWidget {
                     ),
                   );
                 }
-
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return Center(
                     child: Padding(
@@ -293,12 +286,8 @@ class ClanListPage extends StatelessWidget {
                     ),
                   );
                 }
-
                 final clans = snapshot.data!;
-
-                // Layout Grid para tablets e telas grandes
                 if (isLargeScreen) {
-                  // Para telas muito grandes (desktop ou tablets grandes)
                   return GridView.builder(
                     padding: EdgeInsets.symmetric(
                       horizontal: isTablet ? 24 : 16,
@@ -320,7 +309,6 @@ class ClanListPage extends StatelessWidget {
                     },
                   );
                 } else if (isTablet) {
-                  // Para tablets em orientação retrato
                   return GridView.builder(
                     padding: EdgeInsets.symmetric(
                       horizontal: 20,
@@ -341,7 +329,6 @@ class ClanListPage extends StatelessWidget {
                     },
                   );
                 } else {
-                  // Para smartphones - ListView tradicional
                   return ListView.separated(
                     padding: EdgeInsets.symmetric(
                       horizontal: isTablet ? 20 : 16,
@@ -399,7 +386,6 @@ class ClanListPage extends StatelessWidget {
             padding: EdgeInsets.all(isTablet ? 20 : 16),
             child: Row(
               children: [
-                // Ícone do clã
                 Container(
                   width: isTablet ? 70 : 60,
                   height: isTablet ? 70 : 60,
@@ -420,8 +406,6 @@ class ClanListPage extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: isTablet ? 20 : 16),
-
-                // Informações do clã
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -484,8 +468,6 @@ class ClanListPage extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                // Ícone de seta
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   color: Colors.grey[600],
@@ -500,7 +482,6 @@ class ClanListPage extends StatelessWidget {
   }
 
   Future<void> _joinClan(BuildContext context, Clan clan, {bool isTablet = false}) async {
-    // Mostrar diálogo de confirmação
     bool confirm = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -610,8 +591,6 @@ class ClanListPage extends StatelessWidget {
     );
 
     if (confirm != true) return;
-
-    // Mostrar loading
     showDialog(
       context: context,
       barrierDismissible: false,

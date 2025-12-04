@@ -31,7 +31,6 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void register() async {
-    // Mostrar loading elegante
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -82,7 +81,7 @@ class _RegisterPageState extends State<RegisterPage> {
         final uid = cred.user!.uid;
         final newUser = AppUser(
           id: uid,
-          clanId: null,
+          clanId: "",
           name: nameController.text,
           email: emailController.text.trim(),
           points: 0,
@@ -91,14 +90,13 @@ class _RegisterPageState extends State<RegisterPage> {
         );
         await AppUserService().createUser(newUser);
 
-        Navigator.pop(context); // Fecha dialog de loading
+        Navigator.pop(context);
 
-        // Aguardar um pouco e depois voltar para LoginPage
         if (!mounted) return;
         await Future.delayed(Duration(milliseconds: 500));
 
         if (!mounted) return;
-        Navigator.pop(context); // Volta de RegisterPage para LoginPage
+        Navigator.pop(context);
       } else {
         Navigator.pop(context);
         showDialog(
@@ -185,8 +183,6 @@ class _RegisterPageState extends State<RegisterPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(height: 30),
-
-              // Logo/Ícone
               Container(
                 height: 140,
                 width: 140,
@@ -212,8 +208,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
               SizedBox(height: 40),
-
-              // Título
               Text(
                 'Criar Conta',
                 style: TextStyle(
@@ -235,8 +229,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 40),
-
-              // Campos de entrada
               Container(
                 decoration: BoxDecoration(
                   color: Color(0xFF111111),
@@ -280,8 +272,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
               SizedBox(height: 30),
-
-              // Botão de registro
               Container(
                 width: double.infinity,
                 height: 56,
@@ -319,8 +309,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
               SizedBox(height: 30),
-
-              // Divisor
               Row(
                 children: [
                   Expanded(
@@ -343,8 +331,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ],
               ),
               SizedBox(height: 30),
-
-              // Link para login
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -355,7 +341,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   SizedBox(width: 8),
                   GestureDetector(
                     onTap: () {
-                      // Apenas voltar para LoginPage (que está sendo renderizada pelo AuthPage)
                       Navigator.pop(context);
                     },
                     child: Container(
@@ -383,8 +368,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 ],
               ),
               SizedBox(height: 40),
-
-              // Informações adicionais
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(

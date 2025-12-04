@@ -18,10 +18,9 @@ class ClanPage extends StatefulWidget {
 
 class _ClanPageState extends State<ClanPage> {
   late BuildContext parentContext;
-  bool _membersExpanded = false; // Alterado para false
-  bool _activitiesExpanded = false; // Alterado para false
+  bool _membersExpanded = false;
+  bool _activitiesExpanded = false;
 
-  // Função para remover um membro do clã (apenas líder)
   void _removeMember(
     BuildContext context,
     String memberId,
@@ -58,7 +57,6 @@ class _ClanPageState extends State<ClanPage> {
                 child: Icon(Icons.warning_rounded, color: Colors.red, size: 30),
               ),
               SizedBox(height: 20),
-
               Text(
                 "Remover Membro",
                 style: TextStyle(
@@ -68,7 +66,6 @@ class _ClanPageState extends State<ClanPage> {
                 ),
               ),
               SizedBox(height: 12),
-
               Text(
                 "Tem certeza que deseja remover '$memberName' do clã? Esta ação não pode ser desfeita.",
                 style: TextStyle(
@@ -79,7 +76,6 @@ class _ClanPageState extends State<ClanPage> {
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 24),
-
               Row(
                 children: [
                   Expanded(
@@ -108,7 +104,6 @@ class _ClanPageState extends State<ClanPage> {
                     ),
                   ),
                   SizedBox(width: 12),
-
                   Expanded(
                     child: Container(
                       height: 44,
@@ -128,7 +123,6 @@ class _ClanPageState extends State<ClanPage> {
                       child: TextButton(
                         onPressed: () async {
                           Navigator.pop(dialogContext);
-
                           showDialog(
                             context: stateContext,
                             barrierDismissible: false,
@@ -139,7 +133,6 @@ class _ClanPageState extends State<ClanPage> {
                               ),
                             ),
                           );
-
                           try {
                             final clanService = ClanService();
                             await clanService.removeMember(
@@ -149,20 +142,18 @@ class _ClanPageState extends State<ClanPage> {
                             );
 
                             if (mounted) {
-                              Navigator.pop(stateContext); // fecha loading
-
-                              // Se o membro removido for o usuário atual, redireciona
+                              Navigator.pop(stateContext);
                               if (memberId == widget.user.id) {
                                 Navigator.of(stateContext).pushReplacement(
                                   MaterialPageRoute(
-                                    builder: (context) => const JoinAppPage(),
+                                    builder: (context) => JoinAppPage(),
                                   ),
                                 );
                               }
                             }
                           } catch (e) {
                             if (mounted) {
-                              Navigator.pop(stateContext); // fecha loading
+                              Navigator.pop(stateContext);
                               ScaffoldMessenger.of(stateContext).showSnackBar(
                                 SnackBar(
                                   content: Text('Erro ao remover membro: $e'),
@@ -197,11 +188,8 @@ class _ClanPageState extends State<ClanPage> {
     );
   }
 
-  // Função para sair do clã
   void _leaveClan(BuildContext context) {
-    final stateContext =
-        context; // contexto do State (usado para navegação/mostrar loading)
-
+    final stateContext = context;
     showDialog(
       context: stateContext,
       builder: (dialogContext) => Dialog(
@@ -230,7 +218,6 @@ class _ClanPageState extends State<ClanPage> {
                 child: Icon(Icons.warning_rounded, color: Colors.red, size: 30),
               ),
               SizedBox(height: 20),
-
               Text(
                 "Sair do Clã",
                 style: TextStyle(
@@ -240,7 +227,6 @@ class _ClanPageState extends State<ClanPage> {
                 ),
               ),
               SizedBox(height: 12),
-
               Text(
                 "Tem certeza que deseja sair do clã? Você perderá todos os pontos e progresso associados.",
                 style: TextStyle(
@@ -251,7 +237,6 @@ class _ClanPageState extends State<ClanPage> {
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 24),
-
               Row(
                 children: [
                   Expanded(
@@ -280,7 +265,6 @@ class _ClanPageState extends State<ClanPage> {
                     ),
                   ),
                   SizedBox(width: 12),
-
                   Expanded(
                     child: Container(
                       height: 44,
@@ -299,10 +283,7 @@ class _ClanPageState extends State<ClanPage> {
                       ),
                       child: TextButton(
                         onPressed: () async {
-                          // fecha o diálogo de confirmação
                           Navigator.pop(dialogContext);
-
-                          // abrir loading usando o contexto do State
                           showDialog(
                             context: stateContext,
                             barrierDismissible: false,
@@ -313,14 +294,12 @@ class _ClanPageState extends State<ClanPage> {
                               ),
                             ),
                           );
-
                           try {
                             final clanId = widget.user.clanId!;
                             final userId = widget.user.id!;
                             final clanService = ClanService();
                             final userService = AppUserService();
 
-                            // Verifica se é líder e deleta o clã se necessário
                             await clanService.leaderLeaveClan(
                               clanId: clanId,
                               userId: userId,
@@ -333,14 +312,12 @@ class _ClanPageState extends State<ClanPage> {
 
                             if (!mounted) return;
 
-                            // fecha loading
                             if (Navigator.canPop(stateContext)) {
                               Navigator.pop(stateContext);
                             }
 
                             if (!mounted) return;
 
-                            // Navega para JoinAppPage e remove backstack
                             Navigator.of(stateContext).pushAndRemoveUntil(
                               MaterialPageRoute(
                                 builder: (_) => const JoinAppPage(),
@@ -397,7 +374,6 @@ class _ClanPageState extends State<ClanPage> {
     final membersStream = ClanService().getClanMembers(widget.user.clanId!);
     parentContext = context;
 
-    // Monitora se o usuário foi removido da subcoleção de membros
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FirebaseFirestore.instance
           .collection('clans')
@@ -407,7 +383,6 @@ class _ClanPageState extends State<ClanPage> {
           .snapshots()
           .listen((snapshot) {
             if (!snapshot.exists && mounted) {
-              // Usuário foi removido! Redireciona para JoinAppPage
               Navigator.of(context).pushReplacementNamed('/') ??
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
@@ -417,14 +392,12 @@ class _ClanPageState extends State<ClanPage> {
             }
           });
 
-      // Monitora se o clã foi deletado
       FirebaseFirestore.instance
           .collection('clans')
           .doc(widget.user.clanId)
           .snapshots()
           .listen((snapshot) {
             if (!snapshot.exists && mounted) {
-              // Clã foi deletado! Redireciona para JoinAppPage
               Navigator.of(context).pushReplacementNamed('/') ??
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
@@ -439,7 +412,7 @@ class _ClanPageState extends State<ClanPage> {
       backgroundColor: Color(0xFF0A0A0A),
       appBar: AppBar(
         title: Text(
-          "Gym Royale",
+          "GymBros",
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -480,8 +453,6 @@ class _ClanPageState extends State<ClanPage> {
                 return _buildClanHeader(clan);
               },
             ),
-
-            // membros accordion
             StreamBuilder(
               stream: membersStream,
               builder: (context, snapshot) {
@@ -490,8 +461,6 @@ class _ClanPageState extends State<ClanPage> {
                 return _buildMembersAccordion(members);
               },
             ),
-
-            // atividades accordion
             StreamBuilder(
               stream: activitiesStream,
               builder: (context, snapshot) {
@@ -529,7 +498,6 @@ class _ClanPageState extends State<ClanPage> {
       ),
       child: Column(
         children: [
-          // Ícone do clã
           Container(
             width: 80,
             height: 80,
@@ -555,8 +523,6 @@ class _ClanPageState extends State<ClanPage> {
             ),
           ),
           SizedBox(height: 20),
-
-          // Nome do clã
           Text(
             clan.name.toUpperCase(),
             style: TextStyle(
@@ -568,7 +534,6 @@ class _ClanPageState extends State<ClanPage> {
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 8),
-
           Container(
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
@@ -618,7 +583,7 @@ class _ClanPageState extends State<ClanPage> {
 
   Widget _buildMembersAccordion(List members) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Container(
         decoration: BoxDecoration(
           color: Color(0xFF111111),
@@ -627,7 +592,7 @@ class _ClanPageState extends State<ClanPage> {
         ),
         child: ExpansionTile(
           key: Key('members_accordion'),
-          initiallyExpanded: _membersExpanded, // Agora false por padrão
+          initiallyExpanded: _membersExpanded,
           onExpansionChanged: (expanded) {
             setState(() {
               _membersExpanded = expanded;
@@ -702,7 +667,7 @@ class _ClanPageState extends State<ClanPage> {
           ),
           children: [
             Padding(
-              padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+              padding: EdgeInsets.only(bottom: 16, left: 16, right: 16),
               child: Column(
                 children: members.asMap().entries.map((entry) {
                   final index = entry.key;
@@ -782,13 +747,10 @@ class _ClanPageState extends State<ClanPage> {
                                 final isLeader =
                                     snapshot.hasData &&
                                     snapshot.data?.leaderId == widget.user.id;
-
-                                // Não mostra remover se o usuário é líder OU se o membro é o próprio líder
                                 if (!isLeader ||
                                     m.id == snapshot.data?.leaderId) {
                                   return SizedBox.shrink();
                                 }
-
                                 return SizedBox(width: 8);
                               },
                             ),
@@ -799,13 +761,10 @@ class _ClanPageState extends State<ClanPage> {
                                 final isLeader =
                                     snapshot.hasData &&
                                     snapshot.data?.leaderId == widget.user.id;
-
-                                // Não mostra remover se o usuário não é líder OU se o membro é o próprio líder
                                 if (!isLeader ||
                                     m.id == snapshot.data?.leaderId) {
                                   return SizedBox.shrink();
                                 }
-
                                 return Container(
                                   width: 36,
                                   height: 36,
@@ -848,7 +807,7 @@ class _ClanPageState extends State<ClanPage> {
 
   Widget _buildActivitiesAccordion(List<Exercise> activities) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Container(
         decoration: BoxDecoration(
           color: Color(0xFF111111),
@@ -914,7 +873,7 @@ class _ClanPageState extends State<ClanPage> {
           ),
           children: [
             Padding(
-              padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+              padding: EdgeInsets.only(bottom: 16, left: 16, right: 16),
               child: Column(
                 children: activities.map((a) {
                   final timeAgo = _formatTimeAgo(a.timestamp);
@@ -947,8 +906,6 @@ class _ClanPageState extends State<ClanPage> {
                           size: 20,
                         ),
                       ),
-
-                      // título = nome da atividade
                       title: Text(
                         "${a.activityName} — ${a.intensity}",
                         style: TextStyle(
@@ -957,9 +914,8 @@ class _ClanPageState extends State<ClanPage> {
                           fontSize: 14,
                         ),
                       ),
-
                       subtitle: Padding(
-                        padding: const EdgeInsets.only(top: 4),
+                        padding: EdgeInsets.only(top: 4),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -981,7 +937,6 @@ class _ClanPageState extends State<ClanPage> {
                           ],
                         ),
                       ),
-
                       trailing: Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: 12,
@@ -1071,7 +1026,7 @@ class _ClanPageState extends State<ClanPage> {
 
   Widget _buildSectionSkeleton() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Column(
         children: [
           Container(

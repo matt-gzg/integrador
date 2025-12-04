@@ -81,7 +81,6 @@ class _HomePageState extends State<HomePage> {
           elevation: 0,
 
           items: [
-            // Índice 0: Ranking
             BottomNavigationBarItem(
               icon: Container(
                 padding: EdgeInsets.all(8),
@@ -110,8 +109,7 @@ class _HomePageState extends State<HomePage> {
               ),
               label: "Ranking",
             ),
-            
-            // Índice 1: Clã
+
             BottomNavigationBarItem(
               icon: Container(
                 padding: EdgeInsets.all(8),
@@ -140,8 +138,7 @@ class _HomePageState extends State<HomePage> {
               ),
               label: "Clã",
             ),
-            
-            // Índice 2: Exercícios
+
             BottomNavigationBarItem(
               icon: Container(
                 padding: EdgeInsets.all(8),
@@ -171,7 +168,6 @@ class _HomePageState extends State<HomePage> {
               label: "Exercícios",
             ),
             
-            // Índice 3: Perfil
             BottomNavigationBarItem(
               icon: Container(
                 padding: EdgeInsets.all(8),

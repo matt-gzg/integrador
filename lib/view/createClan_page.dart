@@ -7,7 +7,6 @@ import 'package:integrador/view/home_page.dart';
 
 class CreateClanPage extends StatefulWidget {
   final AppUser user;
-
   const CreateClanPage({required this.user, super.key});
 
   @override
@@ -33,7 +32,6 @@ class _CreateClanPageState extends State<CreateClanPage> {
     try {
       final clanName = _clanNameController.text.trim();
 
-      // Criar o objeto Clan (id vazio pq o firestore gera)
       final clanModel = Clan(
         id: '',
         name: clanName,
@@ -41,14 +39,12 @@ class _CreateClanPageState extends State<CreateClanPage> {
         leaderId: widget.user.id,
       );
 
-      // 🔥 Cria o clã com líder automaticamente registrado como membro
       final clanId = await ClanService().createClan(
         clan: clanModel,
         leaderId: widget.user.id!,
         leaderName: widget.user.name,
       );
 
-      // Atualiza o usuário com o novo clanId
       final updatedUser = widget.user.copyWith(clanId: clanId);
       await AppUserService().updateUser(updatedUser);
 
@@ -101,7 +97,6 @@ class _CreateClanPageState extends State<CreateClanPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cabeçalho explicativo
             Container(
               padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -151,8 +146,6 @@ class _CreateClanPageState extends State<CreateClanPage> {
               ),
             ),
             SizedBox(height: 30),
-
-            // Título do formulário
             Text(
               "Informações do Clã",
               style: TextStyle(
@@ -170,8 +163,6 @@ class _CreateClanPageState extends State<CreateClanPage> {
               ),
             ),
             SizedBox(height: 24),
-
-            // Formulário
             Form(
               key: _formKey,
               child: Container(
@@ -183,7 +174,6 @@ class _CreateClanPageState extends State<CreateClanPage> {
                 ),
                 child: Column(
                   children: [
-                    // Campo do nome do clã
                     TextFormField(
                       controller: _clanNameController,
                       style: TextStyle(color: Colors.white),
@@ -233,8 +223,6 @@ class _CreateClanPageState extends State<CreateClanPage> {
                       },
                     ),
                     SizedBox(height: 20),
-
-                    // Informações adicionais
                     Container(
                       padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -263,8 +251,6 @@ class _CreateClanPageState extends State<CreateClanPage> {
                       ),
                     ),
                     SizedBox(height: 30),
-
-                    // Botão de criar
                     _isLoading
                         ? Container(
                             width: double.infinity,
@@ -340,8 +326,6 @@ class _CreateClanPageState extends State<CreateClanPage> {
                 ),
               ),
             ),
-
-            // Rodapé informativo
             SizedBox(height: 25),
             Center(
               child: Text(

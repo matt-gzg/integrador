@@ -2,27 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-// Formatador de máscara para data brasileira (DD/MM/YYYY)
 class DateMaskFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    // Se o texto está vazio, retorna como está
     if (newValue.text.isEmpty) {
       return newValue;
     }
 
-    // Remove caracteres não numéricos
     String digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
 
-    // Limita a 8 dígitos (DDMMYYYY)
     if (digitsOnly.length > 8) {
       digitsOnly = digitsOnly.substring(0, 8);
     }
 
-    // Aplica a máscara
     String formatted = '';
     for (int i = 0; i < digitsOnly.length; i++) {
       if (i == 2 || i == 4) {
