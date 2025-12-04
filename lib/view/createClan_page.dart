@@ -33,30 +33,40 @@ class _CreateClanPageState extends State<CreateClanPage> {
     try {
       final clanName = _clanNameController.text.trim();
 
-      // Cria documento novo na coleção "clans" com nome e pontos 0
-      final clanId = await ClanService().createClan(
-        Clan(id: '', name: clanName, points: 0),
+      // Criar o objeto Clan (id vazio pq o firestore gera)
+      final clanModel = Clan(
+        id: '',
+        name: clanName,
+        points: 0,
+        leaderId: widget.user.id,
       );
 
-      // Atualiza usuário para vincular ao clã criado
-      final updatedUser = widget.user;
-      updatedUser.clanId = clanId;
+      // 🔥 Cria o clã com líder automaticamente registrado como membro
+      final clanId = await ClanService().createClan(
+        clan: clanModel,
+        leaderId: widget.user.id!,
+        leaderName: widget.user.name,
+      );
 
+      // Atualiza o usuário com o novo clanId
+      final updatedUser = widget.user.copyWith(clanId: clanId);
       await AppUserService().updateUser(updatedUser);
 
-      // Voltar para home (que agora vai detectar o clanId e mostrar ClanHome)
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => HomePage(user: updatedUser)),
-          (route) => false,
-        );
-      }
+      if (!mounted) return;
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => HomePage(user: updatedUser)),
+        (route) => false,
+      );
 
     } catch (e) {
-      // mostrar erro simples
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao criar clã: $e')),
+        SnackBar(
+          content: Text('Erro ao criar clã: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -66,35 +76,285 @@ class _CreateClanPageState extends State<CreateClanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Create Clan")),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _clanNameController,
-                decoration: const InputDecoration(labelText: "Clan Name"),
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty) {
-                    return "Please enter a clan name";
-                  }
-                  if (val.trim().length < 3) {
-                    return "Name must be at least 3 characters";
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              _isLoading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                      onPressed: _createClan,
-                      child: const Text("Create Clan"),
-                    ),
-            ],
+      backgroundColor: Color(0xFF0A0A0A),
+      appBar: AppBar(
+        backgroundColor: Color(0xFF111111),
+        elevation: 0,
+        title: Text(
+          "Criar Clã",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.1,
           ),
+        ),
+        centerTitle: true,
+        iconTheme: IconThemeData(color: Colors.white),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Cabeçalho explicativo
+            Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Color(0xFF111111),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey[800]!),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.add_circle_outline_rounded,
+                      color: Colors.orange,
+                      size: 30,
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Fundar seu próprio clã",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          "Seja o líder e crie uma comunidade de competidores!",
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 30),
+
+            // Título do formulário
+            Text(
+              "Informações do Clã",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "Preencha os dados para criar seu novo clã",
+              style: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 14,
+              ),
+            ),
+            SizedBox(height: 24),
+
+            // Formulário
+            Form(
+              key: _formKey,
+              child: Container(
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Color(0xFF111111),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.grey[800]!),
+                ),
+                child: Column(
+                  children: [
+                    // Campo do nome do clã
+                    TextFormField(
+                      controller: _clanNameController,
+                      style: TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: "Nome do Clã",
+                        labelStyle: TextStyle(color: Colors.orange),
+                        hintText: "Ex: Guerreiros da Academia",
+                        hintStyle: TextStyle(color: Colors.grey[600]),
+                        filled: true,
+                        fillColor: Color(0xFF1A1A1A),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: Colors.grey[800]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: Colors.orange),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: Colors.red),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: Colors.red),
+                        ),
+                        prefixIcon: Icon(
+                          Icons.flag_rounded,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) {
+                          return "Digite um nome para o clã";
+                        }
+                        if (val.trim().length < 3) {
+                          return "O nome deve ter pelo menos 3 caracteres";
+                        }
+                        if (val.trim().length > 30) {
+                          return "O nome deve ter no máximo 30 caracteres";
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 20),
+
+                    // Informações adicionais
+                    Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.orange.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline_rounded,
+                            color: Colors.orange,
+                            size: 20,
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              "Você será automaticamente o líder do clã criado e poderá gerenciar os membros.",
+                              style: TextStyle(
+                                color: Colors.orange[300],
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 30),
+
+                    // Botão de criar
+                    _isLoading
+                        ? Container(
+                            width: double.infinity,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+                                ),
+                              ),
+                            ),
+                          )
+                        : Container(
+                            width: double.infinity,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.orange.shade600,
+                                  Colors.orange.shade800,
+                                ],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.orange.withOpacity(0.3),
+                                  blurRadius: 15,
+                                  offset: Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: _createClan,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_circle_outline_rounded,
+                                    color: Colors.white,
+                                    size: 22,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    "Criar Clã",
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      letterSpacing: 1.0,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Rodapé informativo
+            SizedBox(height: 25),
+            Center(
+              child: Text(
+                "Após criar o clã, você poderá convidar outros usuários",
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
         ),
       ),
     );
