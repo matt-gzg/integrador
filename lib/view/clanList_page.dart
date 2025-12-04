@@ -370,56 +370,73 @@ class ClanListPage extends StatelessWidget {
   Widget _buildClanCard(Clan clan, BuildContext context, {bool isTablet = false}) {
     final isLeader = clan.leaderId == user.id;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Color(0xFF111111),
-        borderRadius: BorderRadius.circular(isTablet ? 18 : 16),
-        border: Border.all(
-          color: isLeader
-              ? Colors.orange.withOpacity(0.3)
-              : Colors.grey[800]!,
-          width: isTablet ? 1.5 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 8,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () async {
-            await _joinClan(context, clan, isTablet: isTablet);
-          },
-          borderRadius: BorderRadius.circular(isTablet ? 18 : 16),
-          child: Padding(
-            padding: EdgeInsets.all(isTablet ? 20 : 16),
-            child: Row(
-              children: [
-                // Ícone do clã
-                Container(
-                  width: isTablet ? 70 : 60,
-                  height: isTablet ? 70 : 60,
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(isTablet ? 14 : 12),
-                    border: Border.all(
-                      color: Colors.orange.withOpacity(0.3),
-                      width: isTablet ? 1.5 : 1,
-                    ),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.flag_rounded,
-                      color: Colors.orange,
-                      size: isTablet ? 32 : 28,
-                    ),
-                  ),
-                ),
-                SizedBox(width: isTablet ? 20 : 16),
+                                // Informações do clã
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              clan.name,
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
+                                            ),
+                                          ),
+                                          if (isLeader) ...[
+                                            SizedBox(width: 8),
+                                            Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 2,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.orange
+                                                    .withOpacity(0.2),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              child: Text(
+                                                "LÍDER",
+                                                style: TextStyle(
+                                                  color: Colors.orange,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: 0.5,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                      SizedBox(height: 6),
+                                      Text(
+                                        "Pontuação: ${clan.points} pontos",
+                                        style: TextStyle(
+                                          color: Colors.orange[300],
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        "Liderado por: ${clan.leaderId == user.id ? 'Você' : 'Outro líder'}",
+                                        style: TextStyle(
+                                          color: Colors.grey[500],
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
 
                 // Informações do clã
                 Expanded(
@@ -535,21 +552,18 @@ class ClanListPage extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.flag_rounded,
-                    color: Colors.orange,
-                    size: isTablet ? 24 : 20,
-                  ),
-                  SizedBox(width: isTablet ? 12 : 10),
+                  Icon(Icons.flag_rounded, color: Colors.orange, size: 20),
+                  SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       clan.name,
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: isTablet ? 18 : 16,
+                        fontSize: 16,
                       ),
                       overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
                 ],
