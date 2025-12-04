@@ -305,9 +305,8 @@ class ClanListPage extends StatelessWidget {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Row(
-                                        mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Flexible(
+                                          Expanded(
                                             child: Text(
                                               clan.name,
                                               style: TextStyle(
@@ -316,6 +315,7 @@ class ClanListPage extends StatelessWidget {
                                                 fontWeight: FontWeight.bold,
                                               ),
                                               overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
                                             ),
                                           ),
                                           if (isLeader) ...[
@@ -416,12 +416,16 @@ class ClanListPage extends StatelessWidget {
                 children: [
                   Icon(Icons.flag_rounded, color: Colors.orange, size: 20),
                   SizedBox(width: 10),
-                  Text(
-                    clan.name,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                  Expanded(
+                    child: Text(
+                      clan.name,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
                 ],
