@@ -424,11 +424,8 @@ class _LoginPageState extends State<LoginPage> {
         password: passwordController.text,
       );
 
-      if (!mounted) return;
-
-      // Fechar dialog de loading
       if (Navigator.canPop(context)) {
-        Navigator.pop(context);
+        Navigator.of(context, rootNavigator: true).pop();
       }
 
       // Limpar controllers
@@ -438,7 +435,6 @@ class _LoginPageState extends State<LoginPage> {
       // O AuthPage detectará a mudança automaticamente e redirecionará
       // Não precisa fazer mais nada aqui!
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
 
       if (Navigator.canPop(context)) {
         Navigator.pop(context);
