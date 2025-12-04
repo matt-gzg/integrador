@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:integrador/model/activity_model.dart';
 import 'package:integrador/model/clan_model.dart';
 import 'package:integrador/model/clanMember_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -37,7 +36,7 @@ class ClanService {
     return _firestore
         .collection("clans")
         .doc(clanId)
-        .collection("activities")
+        .collection("exerciseLogs")
         .orderBy("timestamp", descending: true)
         .snapshots()
         .map(
@@ -57,6 +56,41 @@ class ClanService {
               snap.docs.map((d) => Clan.fromFirestore(d.id, d.data())).toList(),
         );
   }
+
+  Future<void> addExerciseToClan({
+    required String clanId,
+    required Exercise exercise,
+  }) async {
+    final ref = _db
+        .collection("clans")
+        .doc(clanId)
+        .collection("exerciseLogs")
+        .doc();
+
+    await ref.set(exercise.toFirestore());
+  }
+
+  Future<void> applyExercisePoints({
+    required String clanId,
+    required String userId,
+    required int points,
+  }) async {
+    final clanRef = _db.collection("clans").doc(clanId);
+    final memberRef = clanRef.collection("members").doc(userId);
+
+    await _db.runTransaction((t) async {
+      // atualizar pontos do membro
+      final m = await t.get(memberRef);
+      int mp = m.data()?["points"] ?? 0;
+      t.update(memberRef, { "points": mp + points });
+
+      // atualizar pontos do clã
+      final c = await t.get(clanRef);
+      int cp = c.data()?["points"] ?? 0;
+      t.update(clanRef, { "points": cp + points });
+    });
+  }
+
 
   // -----------------------------------------------------------
   // CRIAÇÃO E ENTRADA EM CLÃ
@@ -230,4 +264,24 @@ class ClanService {
               snap.docs.map((d) => Clan.fromFirestore(d.id, d.data())).toList(),
         );
   }
+
+  Future<void> deleteClan(String clanId) async {
+    final clanRef = FirebaseFirestore.instance.collection("clans").doc(clanId);
+
+    // Apagar members
+    final membersSnap = await clanRef.collection("members").get();
+    for (var doc in membersSnap.docs) {
+      await doc.reference.delete();
+    }
+
+    // Apagar activities
+    final activitiesSnap = await clanRef.collection("activities").get();
+    for (var doc in activitiesSnap.docs) {
+      await doc.reference.delete();
+    }
+
+    // Apagar documento do clã
+    await clanRef.delete();
+  }
+
 }

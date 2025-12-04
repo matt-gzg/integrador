@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:integrador/model/appUser_model.dart';
-import 'package:integrador/services/exerciseLog_service.dart';
+import 'package:integrador/services/exercise_service.dart';
 
 class AddExerciseDialog {
   static void show({
     required BuildContext context,
-    required ExerciseLogService logService,
+    required ExerciseService logService,
     required AppUser user,
   }) {
     final activityController = TextEditingController();
     final durationController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
     String selectedIntensity = "baixa";
 
     showDialog(
       context: context,
       builder: (context) => buildDialog(
         context: context,
+        formKey: formKey,
         title: "Registrar Exercício",
         description: "Adicione os detalhes do seu treino",
         icon: Icons.fitness_center_rounded,
@@ -25,23 +28,19 @@ class AddExerciseDialog {
         onIntensityChanged: (value) => selectedIntensity = value!,
         onCancel: () => Navigator.pop(context),
         onConfirm: () async {
-          if (activityController.text.isNotEmpty &&
-              durationController.text.isNotEmpty) {
-            await logService.addExerciseLog(
-              userId: user.id!,
-              userName: user.name,
-              activityName: activityController.text,
-              intensity: selectedIntensity,
-              duration: int.tryParse(durationController.text) ?? 0,
-            );
-            Navigator.pop(context);
-          }
+          await logService.addExerciseLog(
+            userId: user.id!,
+            userName: user.name,
+            activityName: activityController.text,
+            intensity: selectedIntensity,
+            duration: int.parse(durationController.text),
+          );
+          Navigator.pop(context);
         },
         confirmText: "Salvar",
       ),
     );
   }
-
   static Widget buildDialog({
     required BuildContext context,
     required String title,
@@ -54,6 +53,7 @@ class AddExerciseDialog {
     required VoidCallback onCancel,
     required VoidCallback onConfirm,
     required String confirmText,
+    required GlobalKey<FormState> formKey,
     bool isLoading = false,
   }) {
     return Dialog(
@@ -65,71 +65,134 @@ class AddExerciseDialog {
       child: Container(
         padding: EdgeInsets.all(24),
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(24)),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.orange.shade600, Colors.orange.shade800],
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.orange.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
+        child: Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.orange.shade600, Colors.orange.shade800],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.orange.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Icon(icon, color: Colors.white, size: 28),
-            ),
-            SizedBox(height: 16),
+                  child: Icon(icon, color: Colors.white, size: 28),
+                ),
+                SizedBox(height: 16),
 
-            Text(
-              title,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 4),
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 4),
 
-            Text(
-              description,
-              style: TextStyle(color: Colors.grey[400], fontSize: 12),
-            ),
-            SizedBox(height: 24),
+                Text(
+                  description,
+                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                ),
+                SizedBox(height: 24),
 
-            _buildTextField(
-              controller: activityController,
-              label: "Nome da atividade",
-            ),
-            SizedBox(height: 16),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Color(0xFF1A1A1A),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[800]!, width: 1),
+                  ),
+                  child: TextFormField(
+                    controller: activityController,
+                    style: TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: "Nome da atividade",
+                      labelStyle: TextStyle(color: Colors.grey[400]),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty || value.trim().isEmpty) {
+                        return "Informe o nome da atividade.";
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                SizedBox(height: 16),
 
-            _buildIntensityDropdown(
-              selectedIntensity: selectedIntensity,
-              onChanged: onIntensityChanged,
-            ),
-            SizedBox(height: 16),
+                _buildIntensityDropdown(
+                  selectedIntensity: selectedIntensity,
+                  onChanged: onIntensityChanged,
+                ),
+                SizedBox(height: 16),
 
-            _buildTextField(
-              controller: durationController,
-              label: "Duração (minutos)",
-              keyboardType: TextInputType.number,
-            ),
-            SizedBox(height: 24),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Color(0xFF1A1A1A),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[800]!, width: 1),
+                  ),
+                  child: TextFormField(
+                    controller: durationController,
+                    style: TextStyle(color: Colors.white),
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: "Duração (minutos)",
+                      labelStyle: TextStyle(color: Colors.grey[400]),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Informe a duração em minutos.";
+                      }
 
-            _buildDialogButtons(
-              onCancel: onCancel,
-              onConfirm: onConfirm,
-              confirmText: confirmText,
-              isLoading: isLoading,
+                      final minutes = int.tryParse(value);
+                      if (minutes == null) {
+                        return "Digite um número válido.";
+                      }
+
+                      if (minutes < 1) {
+                        return "A duração mínima é 1 minuto.";
+                      }
+
+                      if (minutes > 300) {
+                        return "A duração máxima é 300 minutos.";
+                      }
+
+                      return null;
+                    },
+                  ),
+                ),
+
+                SizedBox(height: 24),
+
+                _buildDialogButtons(
+                  onCancel: onCancel,
+                  onConfirm: () {
+                    if (formKey.currentState?.validate() == true) {
+                      onConfirm(); // chama o callback normal
+                    }
+                  },
+
+                  confirmText: confirmText,
+                  isLoading: isLoading,
+                ),
+              ],
             ),
-          ],
+          )
         ),
       ),
     );

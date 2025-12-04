@@ -385,7 +385,7 @@ class _ClanPageState extends State<ClanPage> {
   @override
   Widget build(BuildContext context) {
     final clanStream = ClanService().getClan(widget.user.clanId!);
-    final activitiesStream = ClanService().getClanActivities(
+    final activitiesStream = ClanService().getRecentClanExercises(
       widget.user.clanId!,
     );
     final membersStream = ClanService().getClanMembers(widget.user.clanId!);
@@ -802,7 +802,7 @@ class _ClanPageState extends State<ClanPage> {
     );
   }
 
-  Widget _buildActivitiesAccordion(List activities) {
+  Widget _buildActivitiesAccordion(List<Exercise> activities) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Container(
@@ -813,11 +813,9 @@ class _ClanPageState extends State<ClanPage> {
         ),
         child: ExpansionTile(
           key: Key('activities_accordion'),
-          initiallyExpanded: _activitiesExpanded, // Agora false por padrão
+          initiallyExpanded: _activitiesExpanded,
           onExpansionChanged: (expanded) {
-            setState(() {
-              _activitiesExpanded = expanded;
-            });
+            setState(() => _activitiesExpanded = expanded);
           },
           collapsedBackgroundColor: Color(0xFF111111),
           backgroundColor: Color(0xFF111111),
@@ -838,7 +836,7 @@ class _ClanPageState extends State<ClanPage> {
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.orange.withOpacity(0.3)),
                 ),
-                child: Icon(Icons.bolt, color: Colors.orange, size: 20),
+                child: Icon(Icons.fitness_center, color: Colors.orange, size: 20),
               ),
               SizedBox(width: 12),
               Text(
@@ -870,84 +868,101 @@ class _ClanPageState extends State<ClanPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
               child: Column(
-                children: activities
-                    .map(
-                      (a) => Container(
-                        margin: EdgeInsets.only(bottom: 8),
+                children: activities.map((a) {
+                  final timeAgo = _formatTimeAgo(a.timestamp);
+
+                  return Container(
+                    margin: EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF1A1A1A),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.grey[800]!,
+                        width: 1,
+                      ),
+                    ),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      leading: Container(
+                        width: 44,
+                        height: 44,
                         decoration: BoxDecoration(
-                          color: Color(0xFF1A1A1A),
-                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: Colors.grey[800]!,
-                            width: 1,
+                            color: Colors.orange.withOpacity(0.3),
                           ),
                         ),
-                        child: ListTile(
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          leading: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: Colors.orange.withOpacity(0.3),
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.assignment_turned_in,
-                              color: Colors.orange,
-                              size: 20,
-                            ),
-                          ),
-                          title: Text(
-                            a.activity,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              "Por ${a.userName}",
+                        child: Icon(
+                          Icons.directions_run,
+                          color: Colors.orange,
+                          size: 20,
+                        ),
+                      ),
+
+                      // título = nome da atividade
+                      title: Text(
+                        "${a.activityName} — ${a.intensity}",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "${a.duration} min • Por ${a.userName}",
                               style: TextStyle(
                                 color: Colors.grey[400],
                                 fontSize: 11,
                               ),
                             ),
-                          ),
-                          trailing: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.orange.shade600,
-                                  Colors.orange.shade800,
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              "+${a.points}",
+                            SizedBox(height: 2),
+                            Text(
+                              timeAgo,
                               style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
+                                color: Colors.grey[600],
+                                fontSize: 10,
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+
+                      trailing: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.orange.shade600,
+                              Colors.orange.shade800,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          "+${a.points}",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
                           ),
                         ),
                       ),
-                    )
-                    .toList(),
+                    ),
+                  );
+                }).toList(),
               ),
             ),
           ],
@@ -955,6 +970,17 @@ class _ClanPageState extends State<ClanPage> {
       ),
     );
   }
+
+  String _formatTimeAgo(DateTime time) {
+    final diff = DateTime.now().difference(time);
+
+    if (diff.inMinutes < 1) return "Agora mesmo";
+    if (diff.inMinutes < 60) return "${diff.inMinutes} min atrás";
+    if (diff.inHours < 24) return "${diff.inHours} h atrás";
+    if (diff.inDays == 1) return "Ontem";
+    return "${diff.inDays} dias atrás";
+  }
+
 
   Widget _buildClanHeaderSkeleton() {
     return Container(
