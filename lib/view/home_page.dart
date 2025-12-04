@@ -81,6 +81,7 @@ class _HomePageState extends State<HomePage> {
           elevation: 0,
 
           items: [
+            // Índice 0: Ranking
             BottomNavigationBarItem(
               icon: Container(
                 padding: EdgeInsets.all(8),
@@ -109,11 +110,20 @@ class _HomePageState extends State<HomePage> {
               ),
               label: "Ranking",
             ),
+            
+            // Índice 1: Clã
             BottomNavigationBarItem(
               icon: Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _selectedIndex == 1
+                      ? Colors.orange.withOpacity(0.2)
+                      : Colors.transparent,
+                ),
                 child: Icon(
                   Icons.people_alt_rounded,
-                  size: _selectedIndex == 0 ? 26 : 22,
+                  size: _selectedIndex == 1 ? 26 : 22,
                 ),
               ),
               activeIcon: Container(
@@ -130,18 +140,20 @@ class _HomePageState extends State<HomePage> {
               ),
               label: "Clã",
             ),
+            
+            // Índice 2: Exercícios
             BottomNavigationBarItem(
               icon: Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _selectedIndex == 1
+                  color: _selectedIndex == 2
                       ? Colors.orange.withOpacity(0.2)
                       : Colors.transparent,
                 ),
                 child: Icon(
                   Icons.fitness_center_rounded,
-                  size: _selectedIndex == 1 ? 26 : 22,
+                  size: _selectedIndex == 2 ? 26 : 22,
                 ),
               ),
               activeIcon: Container(
@@ -158,18 +170,20 @@ class _HomePageState extends State<HomePage> {
               ),
               label: "Exercícios",
             ),
+            
+            // Índice 3: Perfil
             BottomNavigationBarItem(
               icon: Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _selectedIndex == 2
+                  color: _selectedIndex == 3
                       ? Colors.orange.withOpacity(0.2)
                       : Colors.transparent,
                 ),
                 child: Icon(
                   Icons.person_rounded,
-                  size: _selectedIndex == 2 ? 26 : 22,
+                  size: _selectedIndex == 3 ? 26 : 22,
                 ),
               ),
               activeIcon: Container(
