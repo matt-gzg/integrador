@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:integrador/model/clan_model.dart';
 import 'package:integrador/model/clanMember_model.dart';
+import 'package:integrador/model/exercise_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ClanService {
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // -----------------------------------------------------------
@@ -11,7 +13,7 @@ class ClanService {
   // -----------------------------------------------------------
 
   Stream<Clan> getClan(String clanId) {
-    return _firestore
+    return _db
         .collection("clans")
         .doc(clanId)
         .snapshots()
@@ -19,7 +21,7 @@ class ClanService {
   }
 
   Stream<List<ClanMember>> getClanMembers(String clanId) {
-    return _firestore
+    return _db
         .collection("clans")
         .doc(clanId)
         .collection("members")
@@ -32,8 +34,8 @@ class ClanService {
         );
   }
 
-  Stream<List<Activity>> getClanActivities(String clanId) {
-    return _firestore
+  Stream<List<Exercise>> getClanExercises(String clanId) {
+    return _db
         .collection("clans")
         .doc(clanId)
         .collection("exerciseLogs")
@@ -41,13 +43,28 @@ class ClanService {
         .snapshots()
         .map(
           (snap) => snap.docs
-              .map((d) => Activity.fromFirestore(d.data(), d.id))
+              .map((d) => Exercise.fromFirestore(d.data(), d.id))
+              .toList(),
+        );
+  }
+
+  Stream<List<Exercise>> getRecentClanExercises(String clanId) {
+    return _db
+        .collection("clans")
+        .doc(clanId)
+        .collection("exerciseLogs")
+        .orderBy("timestamp", descending: true)
+        .limit(5)
+        .snapshots()
+        .map(
+          (snap) => snap.docs
+              .map((d) => Exercise.fromFirestore(d.data(), d.id))
               .toList(),
         );
   }
 
   Stream<List<Clan>> getAllClans() {
-    return _firestore
+    return _db
         .collection("clans")
         .orderBy("points", descending: true)
         .snapshots()
@@ -82,15 +99,14 @@ class ClanService {
       // atualizar pontos do membro
       final m = await t.get(memberRef);
       int mp = m.data()?["points"] ?? 0;
-      t.update(memberRef, { "points": mp + points });
+      t.update(memberRef, {"points": mp + points});
 
       // atualizar pontos do clã
       final c = await t.get(clanRef);
       int cp = c.data()?["points"] ?? 0;
-      t.update(clanRef, { "points": cp + points });
+      t.update(clanRef, {"points": cp + points});
     });
   }
-
 
   // -----------------------------------------------------------
   // CRIAÇÃO E ENTRADA EM CLÃ
@@ -102,7 +118,7 @@ class ClanService {
     required String leaderId,
     required String leaderName,
   }) async {
-    final clanRef = _firestore.collection("clans").doc();
+    final clanRef = _db.collection("clans").doc();
 
     final data = {
       "name": clan.name,
@@ -123,7 +139,7 @@ class ClanService {
 
   /// Adiciona membro normal ao clã
   Future<void> joinClan(String clanId, String userId, String userName) async {
-    final memberRef = _firestore
+    final memberRef = _db
         .collection("clans")
         .doc(clanId)
         .collection("members")
@@ -148,11 +164,11 @@ class ClanService {
     required String activityName,
     required int points,
   }) async {
-    final clanRef = _firestore.collection("clans").doc(clanId);
+    final clanRef = _db.collection("clans").doc(clanId);
     final memberRef = clanRef.collection("members").doc(userId);
     final activitiesRef = clanRef.collection("activities");
 
-    await _firestore.runTransaction((transaction) async {
+    await _db.runTransaction((transaction) async {
       // 1. Registrar atividade
       transaction.set(activitiesRef.doc(), {
         "userId": userId,
@@ -176,33 +192,17 @@ class ClanService {
     });
   }
 
-  Future<void> updateMemberName(
-    String clanId,
-    String userId,
-    String newName,
-  ) async {
-    await FirebaseFirestore.instance
+  Future<void> updateMemberName({
+    required String clanId,
+    required String userId,
+    required String newName,
+  }) async {
+    await _firestore
         .collection("clans")
         .doc(clanId)
         .collection("members")
         .doc(userId)
         .update({"name": newName});
-  }
-
-  Future<void> leaveClan({
-    required String clanId,
-    required String userId,
-  }) async {
-    final clanRef = FirebaseFirestore.instance.collection("clans").doc(clanId);
-    final userRef = FirebaseFirestore.instance.collection("users").doc(userId);
-
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      // Remover o membro da subcoleção do clã
-      transaction.delete(clanRef.collection("members").doc(userId));
-
-      // Remover o clanId do usuário
-      transaction.update(userRef, {"clanId": ""});
-    });
   }
 
   Future<void> removeMember({
@@ -254,8 +254,24 @@ class ClanService {
     });
   }
 
+  Future<void> leaveClan({
+    required String clanId,
+    required String userId,
+  }) async {
+    final clanRef = FirebaseFirestore.instance.collection("clans").doc(clanId);
+    final userRef = FirebaseFirestore.instance.collection("users").doc(userId);
+
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      // Remover o membro da subcoleção do clã
+      transaction.delete(clanRef.collection("members").doc(userId));
+
+      // Remover o clanId do usuário
+      transaction.update(userRef, {"clanId": ""});
+    });
+  }
+
   Stream<List<Clan>> getClansRanked() {
-    return _firestore
+    return _db
         .collection("clans")
         .orderBy("points", descending: true)
         .snapshots()
@@ -283,5 +299,4 @@ class ClanService {
     // Apagar documento do clã
     await clanRef.delete();
   }
-
 }

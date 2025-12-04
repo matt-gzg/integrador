@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:integrador/model/appUser_model.dart';
 import 'package:integrador/model/clan_model.dart';
+import 'package:integrador/model/exercise_model.dart';
 import 'package:integrador/services/appUser_service.dart';
 import 'package:integrador/services/clan_service.dart';
 import 'package:integrador/view/joinApp_page.dart';
@@ -836,7 +837,11 @@ class _ClanPageState extends State<ClanPage> {
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.orange.withOpacity(0.3)),
                 ),
-                child: Icon(Icons.fitness_center, color: Colors.orange, size: 20),
+                child: Icon(
+                  Icons.fitness_center,
+                  color: Colors.orange,
+                  size: 20,
+                ),
               ),
               SizedBox(width: 12),
               Text(
@@ -876,10 +881,7 @@ class _ClanPageState extends State<ClanPage> {
                     decoration: BoxDecoration(
                       color: Color(0xFF1A1A1A),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.grey[800]!,
-                        width: 1,
-                      ),
+                      border: Border.all(color: Colors.grey[800]!, width: 1),
                     ),
                     child: ListTile(
                       contentPadding: EdgeInsets.symmetric(
@@ -980,7 +982,6 @@ class _ClanPageState extends State<ClanPage> {
     if (diff.inDays == 1) return "Ontem";
     return "${diff.inDays} dias atrás";
   }
-
 
   Widget _buildClanHeaderSkeleton() {
     return Container(
